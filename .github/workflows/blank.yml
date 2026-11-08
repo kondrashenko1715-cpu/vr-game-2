@@ -27,7 +27,7 @@ jobs:
           
           export ANDROID_ACCEPT_SDK_LICENSE="y"
           
-          buildozer android clean
+          # ИСПРАВЛЕНО: Убрана команда buildozer android clean, которая вызывала FileNotFoundError
           buildozer android debug
           
           mkdir -p output_apk
