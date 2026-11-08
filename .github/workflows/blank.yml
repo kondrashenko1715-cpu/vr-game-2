@@ -1,36 +1,50 @@
-# This is a basic workflow to help you get started with Actions
+name: Build Python Autonomous APK
+on: [push, workflow_dispatch]
 
-name: CI
-
-# Controls when the workflow will run
-on:
-  # Triggers the workflow on push or pull request events but only for the "main" branch
-  push:
-    branches: [ "main" ]
-  pull_request:
-    branches: [ "main" ]
-
-  # Allows you to run this workflow manually from the Actions tab
-  workflow_dispatch:
-
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "build"
   build:
-    # The type of runner that the job will run on
-    runs-on: ubuntu-latest
-
-    # Steps represent a sequence of tasks that will be executed as part of the job
+    runs-on: ubuntu-22.04
     steps:
-      # Checks-out your repository under $GITHUB_WORKSPACE, so your job can access it
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
 
-      # Runs a single command using the runners shell
-      - name: Run a one-line script
-        run: echo Hello, world!
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.10'
 
-      # Runs a set of commands using the runners shell
-      - name: Run a multi-line script
+      - name: Install Buildozer Dependencies
         run: |
-          echo Add other actions to build,
-          echo test, and deploy your project.
+          sudo apt-get update
+          sudo apt-get install -y git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libffi-dev libltdl-dev
+          pip install --upgrade pip
+          pip install buildozer cython==0.29.36
+
+      - name: Initialize and Configure Buildozer
+        run: |
+          # Автоматически создаем чистый мобильный конфиг
+          buildozer init
+          
+          # Заменяем настройки на параметры нашей VR-игры
+          sed -i 's/^title =.*/title = PicoPythonGame/' buildozer.spec
+          sed -i 's/^package.name =.*/package.name = picopythongame/' buildozer.spec
+          sed -i 's/^package.domain =.*/package.domain = com.vrgame.cube/' buildozer.spec
+          sed -i 's/^requirements =.*/requirements = python3,kivy,pyopengl/' buildozer.spec
+          sed -i 's/^orientation =.*/orientation = landscape/' buildozer.spec
+          
+          # Настраиваем лицензии Android SDK от Google
+          mkdir -p ~/.android
+          touch ~/.android/repositories.cfg
+
+      - name: Build Finished APK
+        run: |
+          # Запускаем прямую компиляцию main.py в мобильный файл
+          yes | buildozer android debug
+          mkdir -p output_apk
+          cp bin/*.apk output_apk/app-debug.apk
+
+      - name: Upload APK to GitHub Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-vr-apk
+          path: output_apk/app-debug.apk
