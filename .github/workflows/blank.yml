@@ -20,32 +20,18 @@ jobs:
           pip install --upgrade pip
           pip install buildozer cython==0.29.36
 
-      - name: Initialize and Configure Buildozer
-        run: |
-          buildozer init
-          
-          sed -i 's/^title =.*/title = PicoPythonGame/' buildozer.spec
-          sed -i 's/^package.name =.*/package.name = picopythongame/' buildozer.spec
-          sed -i 's/^package.domain =.*/package.domain = com.vrgame.cube/' buildozer.spec
-          sed -i 's/^requirements =.*/requirements = python3,kivy,pyopengl/' buildozer.spec
-          sed -i 's/^orientation =.*/orientation = landscape/' buildozer.spec
-          
-          mkdir -p ~/.android
-          touch ~/.android/repositories.cfg
-
       - name: Build Finished APK
         run: |
-          # 1. Заставляем Buildozer сначала просто скачать SDK, чтобы папки появились в системе
-          buildozer android debug || true
+          # Создаем папки под лицензии Google
+          mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
           
-          # 2. ИСПРАВЛЕНО: Бесшумно и принудительно подписываем все лицензии внутри скачанного SDK
-          SDK_MANAGER=$(find ~/.buildozer -name sdkmanager | head -n 1)
-          if [ -n "$SDK_MANAGER" ]; then
-            echo "Найдена утилита sdkmanager, подписываем лицензии..."
-            yes | $SDK_MANAGER --licenses > /dev/null || true
-          fi
+          # Бесшумно подписываем системные лицензии GitHub
+          yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null || true
           
-          # 3. Запускаем сборку повторно — теперь все лицензии приняты и файлы распакуются без сбоев
+          # Копируем их в рабочую область Buildozer
+          cp -r ${ANDROID_HOME}/licenses/* ~/.buildozer/android/platform/android-sdk/licenses/ || true
+          
+          # Запускаем сборку — теперь Buildozer сразу возьмет наш готовый buildozer.spec и пойдет рендерить
           buildozer android debug
           
           mkdir -p output_apk
