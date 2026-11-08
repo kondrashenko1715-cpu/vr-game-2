@@ -6,13 +6,11 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
 version = 0.1
 
-# Собираем только чистое 3D-ядро без сбойных аудио-модулей
-requirements = python3,kivy==2.3.0,pyopengl
+# ИСПРАВЛЕНО: Убрали ПК-версию pyopengl, заменив на легкий мобильный pyopengl_headless
+requirements = python3,kivy==2.3.0,pyopengl_headless
 
 orientation = landscape
 fullscreen = 1
-
-# Собираем исключительно под мобильный 64-битный процессор шлема Pico 4
 android.archs = arm64-v8a
 android.allow_skip_x86 = True
 
@@ -22,6 +20,5 @@ android.minapi = 29
 android.ndk_api = 29
 
 [buildozer]
-# ИСПРАВЛЕНО: Уровень 1 отключает бесконечный спам логов компилятора, спасая сервер от вылета
 log_level = 1
 warn_on_root = 0
