@@ -22,16 +22,24 @@ jobs:
 
       - name: Build Finished APK
         run: |
-          # Создаем папки под лицензии Google
+          # ИСПРАВЛЕНО: Принудительно создаем старый путь папки, который ищет Buildozer
+          mkdir -p /usr/local/lib/android/sdk/tools/bin
+          
+          # Создаем виртуальный мост (ссылку) к реальному sdkmanager на сервере GitHub
+          if [ -f "/usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager" ]; then
+            ln -sf /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager /usr/local/lib/android/sdk/tools/bin/sdkmanager
+          fi
+          
+          # Заранее создаем папки под лицензии Google
           mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
           
           # Бесшумно подписываем системные лицензии GitHub
-          yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null || true
+          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null || true
           
           # Копируем их в рабочую область Buildozer
-          cp -r ${ANDROID_HOME}/licenses/* ~/.buildozer/android/platform/android-sdk/licenses/ || true
+          cp -r /usr/local/lib/android/sdk/licenses/* ~/.buildozer/android/platform/android-sdk/licenses/ || true
           
-          # Запускаем сборку — теперь Buildozer сразу возьмет наш готовый buildozer.spec и пойдет рендерить
+          # Запускаем сборку
           buildozer android debug
           
           mkdir -p output_apk
