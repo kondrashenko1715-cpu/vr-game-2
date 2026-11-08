@@ -29,14 +29,15 @@ jobs:
           export P4A_NUM_WORKERS=1
           
           echo "============================================="
-          echo "🚀 РОБОТ ЛЕОН ЗАПУСТИЛ СБОРКУ ИГРЫ ДЛЯ PICO 4!"
+          echo "🚀 СТАНДАРТНЫЙ ЗАПУСК СБОРКИ ДЛЯ PICO 4..."
           echo "============================================="
           
-          # ИСПРАВЛЕНО: Убрана заглушка || true. Сборка пойдет честно по правильному NDK
-          buildozer --quiet android debug 2>&1 | grep --line-buffered -E "ℹ️|Entering|Leaving|Building|Compiling target|Package|Applying patch|# |Installing"
+          # ИСПРАВЛЕНО: Убран grep и любые фильтры логов. 
+          # Сборщик работает в штатном режиме, чтобы успешно создать цифровой ключ Android.
+          buildozer android debug
           
           echo "============================================="
-          echo "📦 СБОРКА ЗАВЕРШЕНА! КОПИРУЕМ APK..."
+          echo "📦 УПАКОВКА И ПОИСК ГОТОВОГО ФАЙЛА..."
           echo "============================================="
           
           mkdir -p output_apk
