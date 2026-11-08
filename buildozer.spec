@@ -9,15 +9,15 @@ requirements = python3,kivy,pyopengl
 orientation = landscape
 osx.kivy_version = 2.1.0
 fullscreen = 1
+
+# ИСПРАВЛЕНО: Жестко собираем ТОЛЬКО под мобильный процессор Pico 4, отключая сбойный x86_64
 android.archs = arm64-v8a
+android.allow_skip_x86 = True
+
 android.accept_sdk_license = True
 android.skip_update = False
 android.minapi = 29
 android.ndk_api = 29
-
-# ИСПРАВЛЕНО: Указываем Buildozer точные пути к SDK, NDK и sdkmanager на сервере GitHub Actions
-android.sdk_path = /usr/local/lib/android/sdk
-android.ndk_path = /usr/local/lib/android/sdk/ndk/25.2.9519653
 
 [buildozer]
 log_level = 2
