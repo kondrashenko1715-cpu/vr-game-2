@@ -27,8 +27,9 @@ jobs:
           
           export ANDROID_ACCEPT_SDK_LICENSE="y"
           
-          # ИСПРАВЛЕНО: Убрана команда buildozer android clean, которая вызывала FileNotFoundError
-          buildozer android debug
+          # ИСПРАВЛЕНО: Прячем весь бесконечный спам логов компиляции в /dev/null,
+          # но перенаправляем поток ОШИБОК (stderr) на экран, чтобы видеть только суть!
+          buildozer android debug > /dev/null
           
           mkdir -p output_apk
           cp bin/*.apk output_apk/app-debug.apk
