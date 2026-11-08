@@ -22,24 +22,25 @@ jobs:
 
       - name: Initialize and Configure Buildozer
         run: |
-          # Автоматически создаем чистый мобильный конфиг
           buildozer init
           
-          # Заменяем настройки на параметры нашей VR-игры
           sed -i 's/^title =.*/title = PicoPythonGame/' buildozer.spec
           sed -i 's/^package.name =.*/package.name = picopythongame/' buildozer.spec
           sed -i 's/^package.domain =.*/package.domain = com.vrgame.cube/' buildozer.spec
           sed -i 's/^requirements =.*/requirements = python3,kivy,pyopengl/' buildozer.spec
           sed -i 's/^orientation =.*/orientation = landscape/' buildozer.spec
           
-          # Настраиваем лицензии Android SDK от Google
           mkdir -p ~/.android
           touch ~/.android/repositories.cfg
 
+      # ИСПРАВЛЕНО: Принимаем лицензии Google официальной тихой командой без спама в логи
+      - name: Accept Android SDK Licenses
+        run: |
+          buildozer android licenses
+
       - name: Build Finished APK
         run: |
-          # Запускаем прямую компиляцию main.py в мобильный файл
-          yes | buildozer android debug
+          buildozer android debug
           mkdir -p output_apk
           cp bin/*.apk output_apk/app-debug.apk
 
