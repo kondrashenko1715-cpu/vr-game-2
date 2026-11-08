@@ -6,7 +6,9 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
 version = 0.1
 
-# ИСПРАВЛЕНО: Убрали pyopengl, оставив только Kivy, который сам умеет рисовать 3D на Android
+# 1. ИСПРАВЛЕНО: Вырезаем сбойные тестовые папки Python, на которых загорался крестик
+source.exclude_patterns = **/test/**,**/tests/**,**/unittest/**
+
 requirements = python3,kivy==2.3.0
 
 orientation = landscape
@@ -19,6 +21,9 @@ android.minapi = 29
 android.ndk_api = 29
 
 [buildozer]
-# ИСПРАВЛЕНО: Вернули детальные логи, чтобы в случае чего сразу увидеть точную причину
+# Оставляем двойку для перехвата ошибок, но...
 log_level = 2
 warn_on_root = 0
+
+# 2. ИСПРАВЛЕНО: Принудительно глушим пулеметный спам компилятора Clang внутри Android NDK
+android.meta_data = "p4a.extra_args=--quiet"
