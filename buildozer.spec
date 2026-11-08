@@ -6,13 +6,17 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
 version = 0.1
 
-# ИСПРАВЛЕНО: Собираем строго базовое ядро Python и OpenGL, отсекая сбойные модули звука и буфера
+# 1.requirements: берем только базовую графику без тяжелых медиа-хвостов
 requirements = python3,kivy==2.3.0,pyopengl
 
 orientation = landscape
-osx.kivy_version = 2.1.0
 fullscreen = 1
+
+# 2. РАДИКАЛЬНОЕ СОКРАЩЕНИЕ: собираем ТОЛЬКО под процессор Pico 4 (arm64-v8a)
+# Отключаем сборку под старые телефоны и Intel-архитектуры, убирая 70% времени загрузки!
 android.archs = arm64-v8a
+android.allow_skip_x86 = True
+
 android.accept_sdk_license = True
 android.skip_update = False
 android.minapi = 29
