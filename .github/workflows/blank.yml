@@ -30,13 +30,18 @@ jobs:
           sed -i 's/^requirements =.*/requirements = python3,kivy,pyopengl/' buildozer.spec
           sed -i 's/^orientation =.*/orientation = landscape/' buildozer.spec
           
+          # ЖЕСТКАЯ ПОДПИСЬ ЛИЦЕНЗИЙ: Создаем файлы согласия Google Android SDK заранее
           mkdir -p ~/.android
           touch ~/.android/repositories.cfg
+          
+          mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
+          echo -e "244d2d9e8dbc56f047e6863d613bc793828a74bc\n5c50c75a9f6285136d319b448d67252277d4c244\nc33c2e51ccc596ed5e7f8f1de05d4d292e8a202d" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-license
+          echo -e "84831b9409646a918e30573bab4c9c91346d8abd\n504667f4c0de7af1a06de9f4b1727b84351f2910" > ~/.buildozer/android/platform/android-sdk/licenses/android-sdk-preview-license
 
       - name: Build Finished APK
         run: |
-          # ИСПРАВЛЕНО: Запускаем сборку и передаем встроенный флаг автоматического принятия лицензий Google
-          buildozer android debug --accept-sdk-license
+          # Запускаем сборку
+          buildozer android debug
           mkdir -p output_apk
           cp bin/*.apk output_apk/app-debug.apk
 
