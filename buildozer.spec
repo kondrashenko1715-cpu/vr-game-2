@@ -15,6 +15,10 @@ android.skip_update = False
 android.minapi = 29
 android.ndk_api = 29
 
+# ИСПРАВЛЕНО: Указываем Buildozer точные пути к SDK, NDK и sdkmanager на сервере GitHub Actions
+android.sdk_path = /usr/local/lib/android/sdk
+android.ndk_path = /usr/local/lib/android/sdk/ndk/25.2.9519653
+
 [buildozer]
 log_level = 2
 warn_on_root = 0
