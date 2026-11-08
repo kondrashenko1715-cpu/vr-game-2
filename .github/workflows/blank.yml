@@ -22,24 +22,29 @@ jobs:
 
       - name: Build Finished APK
         run: |
-          # ИСПРАВЛЕНО: Принудительно создаем старый путь папки, который ищет Buildozer
-          mkdir -p /usr/local/lib/android/sdk/tools/bin
+          # 1. Заставляем Buildozer сначала скачать и развернуть свою структуру папок Android
+          buildozer android debug || true
           
-          # Создаем виртуальный мост (ссылку) к реальному sdkmanager на сервере GitHub
-          if [ -f "/usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager" ]; then
-            ln -sf /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager /usr/local/lib/android/sdk/tools/bin/sdkmanager
+          # 2. ИСПРАВЛЕНО: Находим реальный sdkmanager внутри папки .buildozer
+          REAL_SDKMANAGER=$(find ~/.buildozer -name sdkmanager | head -n 1)
+          
+          if [ -n "$REAL_SDKMANAGER" ]; then
+            echo "Нашли sdkmanager по пути: $REAL_SDKMANAGER"
+            # Извлекаем папку, где он лежит
+            SDK_BIN_DIR=$(dirname "$REAL_SDKMANAGER")
+            
+            # Принудительно создаем старую структуру папок tools/bin внутри Buildozer
+            BUILDOZER_TOOLS_DIR=~/.buildozer/android/platform/android-sdk/tools/bin
+            mkdir -p "$BUILDOZER_TOOLS_DIR"
+            
+            # Делаем виртуальный мост (ссылку) прямо туда
+            ln -sf "$REAL_SDKMANAGER" "$BUILDOZER_TOOLS_DIR/sdkmanager"
+            
+            # Бесшумно подписываем все лицензии Google прямо внутри папки Buildozer
+            yes | "$REAL_SDKMANAGER" --licenses > /dev/null || true
           fi
           
-          # Заранее создаем папки под лицензии Google
-          mkdir -p ~/.buildozer/android/platform/android-sdk/licenses
-          
-          # Бесшумно подписываем системные лицензии GitHub
-          yes | /usr/local/lib/android/sdk/cmdline-tools/latest/bin/sdkmanager --licenses > /dev/null || true
-          
-          # Копируем их в рабочую область Buildozer
-          cp -r /usr/local/lib/android/sdk/licenses/* ~/.buildozer/android/platform/android-sdk/licenses/ || true
-          
-          # Запускаем сборку
+          # 3. Запускаем чистую сборку — теперь все инструменты на месте, и лицензии приняты
           buildozer android debug
           
           mkdir -p output_apk
