@@ -9,20 +9,18 @@ class VRGameCube(Widget):
         super().__init__(**kwargs)
         self.angle = 0
         with self.canvas:
-            # Запуск 3D-отрисовки OpenGL на экране шлема
             Callback(self.draw_vr_scene)
         Clock.schedule_interval(self.update, 1.0 / 60.0)
 
     def update(self, dt):
-        self.angle += 1  # Куб плавно вращается в невесомости
+        self.angle += 1
 
     def draw_vr_scene(self, instr):
-        # Включаем 3D-глубину и красим фон в серый цвет
+        # Используем встроенные в Kivy константы OpenGL ES 2
         glEnable(GL_DEPTH_TEST)
         glClearColor(0.2, 0.2, 0.2, 1.0)
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
 
-        # Настраиваем камеру
         glMatrixMode(GL_PROJECTION)
         glLoadIdentity()
         glFrustum(-0.5, 0.5, -0.5, 0.5, 1.0, 100.0)
@@ -30,11 +28,9 @@ class VRGameCube(Widget):
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
         
-        # Размещаем оранжевый куб перед глазами
         glTranslatef(0.0, 0.0, -3.0)
         glRotatef(self.angle, 1, 1, 0)
 
-        # Отрисовка куба
         size = 0.6
         glBegin(GL_QUADS)
         glColor3f(1.0, 0.5, 0.0)
