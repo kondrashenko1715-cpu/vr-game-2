@@ -1,7 +1,6 @@
 name: Build Python Autonomous APK
 on: [push, workflow_dispatch]
 
-# Жестко прописываем один поток для всего сервера, чтобы Out of memory был физически невозможен
 env:
   P4A_NUM_WORKERS: 1
 
@@ -35,14 +34,12 @@ jobs:
           echo "🚀 РОБОТ ЛЕОН ЗАПУСТИЛ СБОРКУ ИГРЫ ДЛЯ PICO 4!"
           echo "============================================="
           
-          # Запускаем сборку с нашим красивым фильтром, который скрывает спам
           buildozer --quiet android debug 2>&1 | grep --line-buffered -E "ℹ️|Entering|Leaving|Building|Compiling target|Package|Applying patch|# |Installing" || true
           
           echo "============================================="
           echo "📦 СБОРКА ЗАВЕРШЕНА! ИЩЕМ И КОПИРУЕМ APK..."
           echo "============================================="
           
-          # Обыскиваем сервер, находим готовый APK по нашему NDK 25b и переносим в надежное место
           mkdir -p output_apk
           find . -name "*.apk" -exec cp {} output_apk/app-debug.apk \;
 
@@ -50,4 +47,5 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: python-vr-apk
+          # ИСПРАВЛЕНО: Убран лишний слэш на конце, чтобы GitHub сразу нашел готовый файл
           path: output_apk/app-debug.apk
