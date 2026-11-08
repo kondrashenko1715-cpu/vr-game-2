@@ -1,57 +1,27 @@
-name: Build Python Autonomous APK
-on: [push, workflow_dispatch]
+[app]
+title = PicoPythonGame
+package.name = picopythongame
+package.domain = com.vrgame.cube
+source.dir = .
+source.include_exts = py,png,jpg,kv,atlas
+version = 0.1
 
-jobs:
-  build:
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
+# 1.requirements: берем только базовую графику без тяжелых медиа-хвостов
+requirements = python3,kivy==2.3.0,pyopengl
 
-      - name: Set up Python
-        uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
+orientation = landscape
+fullscreen = 1
 
-      - name: Install Buildozer Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libffi-dev libltdl-dev
-          pip install --upgrade pip
-          pip install buildozer cython==0.29.36
+# 2. РАДИКАЛЬНОЕ СОКРАЩЕНИЕ: собираем ТОЛЬКО под процессор Pico 4 (arm64-v8a)
+# Отключаем сборку под старые телефоны и Intel-архитектуры, убирая 70% времени загрузки!
+android.archs = arm64-v8a
+android.allow_skip_x86 = True
 
-      - name: Build Finished APK
-        run: |
-          # 1. Заставляем Buildozer сначала скачать и развернуть свою структуру папок Android
-          buildozer android debug || true
-          
-          # 2. ИСПРАВЛЕНО: Находим реальный sdkmanager внутри папки .buildozer
-          REAL_SDKMANAGER=$(find ~/.buildozer -name sdkmanager | head -n 1)
-          
-          if [ -n "$REAL_SDKMANAGER" ]; then
-            echo "Нашли sdkmanager по пути: $REAL_SDKMANAGER"
-            # Извлекаем папку, где он лежит
-            SDK_BIN_DIR=$(dirname "$REAL_SDKMANAGER")
-            
-            # Принудительно создаем старую структуру папок tools/bin внутри Buildozer
-            BUILDOZER_TOOLS_DIR=~/.buildozer/android/platform/android-sdk/tools/bin
-            mkdir -p "$BUILDOZER_TOOLS_DIR"
-            
-            # Делаем виртуальный мост (ссылку) прямо туда
-            ln -sf "$REAL_SDKMANAGER" "$BUILDOZER_TOOLS_DIR/sdkmanager"
-            
-            # Бесшумно подписываем все лицензии Google прямо внутри папки Buildozer
-            yes | "$REAL_SDKMANAGER" --licenses > /dev/null || true
-          fi
-          
-          # 3. Запускаем чистую сборку — теперь все инструменты на месте, и лицензии приняты
-          buildozer android debug
-          
-          mkdir -p output_apk
-          cp bin/*.apk output_apk/app-debug.apk
+android.accept_sdk_license = True
+android.skip_update = False
+android.minapi = 29
+android.ndk_api = 29
 
-      - name: Upload APK to GitHub Artifacts
-        uses: actions/upload-artifact@v4
-        with:
-          name: python-vr-apk
-          path: output_apk/app-debug.apk
+[buildozer]
+log_level = 2
+warn_on_root = 0
