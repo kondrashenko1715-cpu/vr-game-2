@@ -33,14 +33,10 @@ jobs:
           mkdir -p ~/.android
           touch ~/.android/repositories.cfg
 
-      # ИСПРАВЛЕНО: Принимаем лицензии Google официальной тихой командой без спама в логи
-      - name: Accept Android SDK Licenses
-        run: |
-          buildozer android licenses
-
       - name: Build Finished APK
         run: |
-          buildozer android debug
+          # ИСПРАВЛЕНО: Запускаем сборку и передаем встроенный флаг автоматического принятия лицензий Google
+          buildozer android debug --accept-sdk-license
           mkdir -p output_apk
           cp bin/*.apk output_apk/app-debug.apk
 
