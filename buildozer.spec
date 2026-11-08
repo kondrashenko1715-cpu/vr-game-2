@@ -6,14 +6,13 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
 version = 0.1
 
-# 1.requirements: берем только базовую графику без тяжелых медиа-хвостов
+# Собираем только чистое 3D-ядро без сбойных аудио-модулей
 requirements = python3,kivy==2.3.0,pyopengl
 
 orientation = landscape
 fullscreen = 1
 
-# 2. РАДИКАЛЬНОЕ СОКРАЩЕНИЕ: собираем ТОЛЬКО под процессор Pico 4 (arm64-v8a)
-# Отключаем сборку под старые телефоны и Intel-архитектуры, убирая 70% времени загрузки!
+# Собираем исключительно под мобильный 64-битный процессор шлема Pico 4
 android.archs = arm64-v8a
 android.allow_skip_x86 = True
 
@@ -23,5 +22,6 @@ android.minapi = 29
 android.ndk_api = 29
 
 [buildozer]
-log_level = 2
+# ИСПРАВЛЕНО: Уровень 1 отключает бесконечный спам логов компилятора, спасая сервер от вылета
+log_level = 1
 warn_on_root = 0
