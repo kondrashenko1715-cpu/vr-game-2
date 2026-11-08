@@ -26,10 +26,18 @@ jobs:
           rm -rf .buildozer
           
           export ANDROID_ACCEPT_SDK_LICENSE="y"
+          export P4A_NUM_WORKERS=1
           
-          # ИСПРАВЛЕНО: Прячем весь бесконечный спам логов компиляции в /dev/null,
-          # но перенаправляем поток ОШИБОК (stderr) на экран, чтобы видеть только суть!
-          buildozer android debug > /dev/null
+          echo "============================================="
+          echo "🚀 РОБОТ ЛЕОН ЗАПУСТИЛ СБОРКУ ИГРЫ ДЛЯ PICO 4!"
+          echo "============================================="
+          
+          # УМНЫЙ ФИЛЬТР: скрываем пулеметный дебаг, но пишем на экран только главные этапы работы!
+          buildozer --quiet android debug 2>&1 | grep --line-buffered -E "ℹ️|Entering|Leaving|Building|Compiling target|Package|Applying patch|# |Installing" || true
+          
+          echo "============================================="
+          echo "📦 СБОРКА ЗАВЕРШЕНА! УПАКОВЫВАЕМ АРТЕФАКТЫ..."
+          echo "============================================="
           
           mkdir -p output_apk
           cp bin/*.apk output_apk/app-debug.apk
