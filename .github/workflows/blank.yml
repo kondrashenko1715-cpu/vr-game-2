@@ -22,6 +22,7 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
+       Caviar:
       - name: Install Buildozer Dependencies
         run: |
           sudo apt-get update
@@ -35,36 +36,14 @@ jobs:
           export JAVA_HOME=$JAVA_HOME_11_X64
           export PATH=$JAVA_HOME/bin:$PATH
           
-          for i in {1..5}; do
-            echo "============================================="
-            echo "🤖 ПОПЫТКА ИСПРАВЛЕНИЯ PYTHON №$i ИЗ 5..."
-            echo "============================================="
-            
-            buildozer android debug > build.log 2>&1
-            STATUS=$?
-            
-            if grep -q "3.14.2" build.log || grep -q "cp314" build.log; then
-              echo "⚠️ ОБНАРУЖЕН УПРЯМЫЙ PYTHON 3.14! СТИРАЕМ И ПЕРЕНАСТРАИВАЕМ..."
-              buildozer android clean
-              rm -rf ~/.bcode ~/.buildozer/android/platform/build-arm64-v8a/dists/
-              
-              if [ $i -eq 5 ]; then
-                echo "❌ ИТОГ: Робот 5 раз подряд попытался поставить 3.14. Проблема 100% в паспорте игры!"
-                tail -n 100 build.log
-                exit 1
-              fi
-              continue
-            fi
-            
-            if [ $STATUS -ne 0 ]; then
-              echo "❌ СБОЙ СБОРКИ НА ДРУГОМ ШАГЕ:"
-              tail -n 150 build.log
-              exit 1
-            fi
-            
-            break
-          done
+          echo "============================================="
+          echo "🚀 РОБОТ ЛЕОН ЗАПУСТИЛ ФИНАЛЬНУЮ СБОРКУ ДЛЯ PICO 4!"
+          echo "============================================="
           
+          # ИСПРАВЛЕНО: Убран скрытый файл. Используем умный фильтр заголовков,
+          # который покажет ошибку старта моментально, если она произойдет!
+          buildozer android debug 2>&1 | grep --line-buffered -E "ℹ️|Entering|Leaving|Building|Compiling target|Package|Applying patch|# |Installing|ERROR|Exception|failed"
+
           echo "============================================="
           echo "📦 УСПЕХ! ИГРА СОБРАНА! КОПИРУЕМ APK..."
           echo "============================================="
