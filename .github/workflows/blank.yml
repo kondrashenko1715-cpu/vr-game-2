@@ -22,7 +22,6 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
-       Caviar:
       - name: Install Buildozer Dependencies
         run: |
           sudo apt-get update
@@ -36,22 +35,17 @@ jobs:
           export JAVA_HOME=$JAVA_HOME_11_X64
           export PATH=$JAVA_HOME/bin:$PATH
           
-          # Запускаем цикл автоматического перехвата версий (до 5 попыток)
           for i in {1..5}; do
             echo "============================================="
             echo "🤖 ПОПЫТКА ИСПРАВЛЕНИЯ PYTHON №$i ИЗ 5..."
             echo "============================================="
             
-            # Запускаем сборку в лог
             buildozer android debug > build.log 2>&1
             STATUS=$?
             
-            # Если в логе всплыла упрямая версия 3.14
             if grep -q "3.14.2" build.log || grep -q "cp314" build.log; then
               echo "⚠️ ОБНАРУЖЕН УПРЯМЫЙ PYTHON 3.14! СТИРАЕМ И ПЕРЕНАСТРАИВАЕМ..."
               buildozer android clean
-              
-              # Принудительно чистим кэш самого сборочного тулчейна Kivy
               rm -rf ~/.bcode ~/.buildozer/android/platform/build-arm64-v8a/dists/
               
               if [ $i -eq 5 ]; then
@@ -62,14 +56,12 @@ jobs:
               continue
             fi
             
-            # Если упал по другой причине
             if [ $STATUS -ne 0 ]; then
               echo "❌ СБОЙ СБОРКИ НА ДРУГОМ ШАГЕ:"
               tail -n 150 build.log
               exit 1
             fi
             
-            # Если всё прошло успешно
             break
           done
           
