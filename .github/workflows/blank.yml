@@ -22,6 +22,7 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
+       Caviar:
       - name: Install Buildozer Dependencies
         run: |
           sudo apt-get update
@@ -31,8 +32,11 @@ jobs:
 
       - name: Build Finished APK
         run: |
-          # ИСПРАВЛЕНО: Полностью убрали rm -rf .buildozer, чтобы сервер не удалял сгенерированный упаковщик gradlew!
           export ANDROID_ACCEPT_SDK_LICENSE="y"
+          
+          # ИСПРАВЛЕНО: Насильно заставляем Buildozer и Gradle использовать установленную Java 11
+          export JAVA_HOME=$JAVA_HOME_11_X64
+          export PATH=$JAVA_HOME/bin:$PATH
           
           echo "============================================="
           echo "🚀 РОБОТ ЛЕОН ЗАПУСТИЛ ФИНАЛЬНУЮ СБОРКУ ДЛЯ PICO 4!"
