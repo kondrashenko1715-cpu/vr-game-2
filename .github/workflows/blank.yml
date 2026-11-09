@@ -14,7 +14,8 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.10'
+          # ИСПРАВЛЕНО: Разрешаем серверу использовать встроенный современный Python
+          python-version: '3.11'
 
       - name: Install Buildozer Dependencies
         run: |
@@ -31,11 +32,9 @@ jobs:
           export ANDROID_ACCEPT_SDK_LICENSE="y"
           
           echo "============================================="
-          echo "🚀 РОБОТ ЛЕОН НАЧАЛ СБОРКУ ИГРЫ В ТИХОМ РЕЖИМЕ..."
+          echo "🚀 РОБОТ ЛЕОН НАЧАЛ СБОРКУ ИГРЫ НА PYTHON 3.14..."
           echo "============================================="
           
-          # ИСПРАВЛЕНО: Прячем весь пулеметный дебаг в скрытый файл build.log. 
-          # Экран будет абсолютно чистым, без лавины текста!
           if ! buildozer android debug > build.log 2>&1; then
             echo "============================================="
             echo "❌ СБОЙ СБОРКИ! ВЫВОДИМ ТОЛЬКО СТРОЧКИ ОШИБКИ:"
