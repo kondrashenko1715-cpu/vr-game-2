@@ -1,6 +1,7 @@
 name: Build Python Autonomous APK
 on: [push, workflow_dispatch]
 
+# Защита памяти: жестко фиксируем один поток для всего сервера сразу
 env:
   P4A_NUM_WORKERS: 1
 
@@ -22,6 +23,7 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
+      # ВШИВАЕМ GRADLE: Устанавливаем официальный рабочий инструмент сборки от Google!
       - name: Setup Gradle
         uses: gradle/actions/setup-gradle@v4
 
@@ -39,19 +41,10 @@ jobs:
           export PATH=$JAVA_HOME/bin:$PATH
           
           echo "============================================="
-          echo "🚀 ИСПРАВЛЯЕМ НЕВИДИМЫЕ СИМВОЛЫ ДЛЯ GRADLE..."
-          echo "============================================="
-          
-          # ЖЕСТКИЙ ХАК: Заранее создаем пути и намертво вырезаем виндовсовские символы \r из упаковщика gradlew
-          mkdir -p .buildozer/android/platform/build-arm64-v8a/dists/picopythongame
-          touch .buildozer/android/platform/build-arm64-v8a/dists/picopythongame/gradlew
-          sed -i 's/\r$//' .buildozer/android/platform/build-arm64-v8a/dists/picopythongame/gradlew || true
-          chmod -R 775 .buildozer/
-          
-          echo "============================================="
           echo "🚀 РОБОТ ЛЕОН ЗАПУСТИЛ УМНУЮ СБОРКУ ДЛЯ PICO 4!"
           echo "============================================="
           
+          # Наш красивый фильтр логов по вашему гениальному предложению — пишет по одному слову для каждого шага
           buildozer android debug 2>&1 | tee build_full.log | grep --line-buffered -E "Building|Compiling target|Package|Applying patch|# |Installing|ERROR|Exception|failed" | sed -u -E '
             s/.*Building ([a-zA-Z0-9_#-]+).*/🔨 Собираем: \1.../
             s/.*Compiling target ([a-zA-Z0-9_#-]+).*/⚙️ Компилируем: \1.../
@@ -62,6 +55,7 @@ jobs:
           
           BUILDOZER_STATUS=${PIPESTATUS}
           
+          # Ловушка ошибок: если финал упадет, выводим хвостик полного лога
           if [ $BUILDOZER_STATUS -ne 0 ]; then
             echo "============================================="
             echo "❌ ТОЧНАЯ ОШИБКА СБОРКИ НА ФИНАЛЬНОМ ШАГЕ:"
