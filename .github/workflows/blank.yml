@@ -11,6 +11,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 1. СТАРАЯ НАДЁЖНАЯ НАСТРОЙКА PYTHON И JAVA
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
@@ -22,16 +23,18 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
+      # 2. ГИБРИДНАЯ УСТАНОВКА СТАБИЛЬНЫХ СБОРЩИКОВ
       - name: Install Buildozer Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y git zip unzip openjdk-11-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libffi-dev libltdl-dev
           pip install --upgrade pip
-          pip install buildozer cython==0.29.36 python-for-android==2024.1.21
+          # Жестко фиксируем версию buildozer, которая не умеет качать Python 3.14
+          pip install buildozer==1.5.0 cython==0.29.36
 
+      # 3. НАДЁЖНЫЙ ФИНАЛЬНЫЙ ЗАПУСК С ОЧИСТКОЙ
       - name: Build Finished APK
         run: |
-          # ИСПРАВЛЕНО: Тотально вырезаем скрытый глобальный кэш, где застрял старый Python 3.14!
           rm -rf ~/.buildozer
           rm -rf ~/.cache/pip
           rm -rf .buildozer
@@ -41,10 +44,9 @@ jobs:
           export PATH=$JAVA_HOME/bin:$PATH
           
           echo "============================================="
-          echo "🚀 РОБОТ ЛЕОН ЗАПУСТИЛ ЧИСТУЮ СБОРКУ ДЛЯ PICO 4!"
+          echo "🚀 ГИБРИДНЫЙ РОБОТ ЗАПУСТИЛ СБОРКУ НА PYTHON 3.11..."
           echo "============================================="
           
-          # Запускаем штатную команду сборки без скрытия ошибок, чтобы система отработала честно
           buildozer android debug
 
           echo "============================================="
