@@ -11,10 +11,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python 3.11
+      - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11.11'
+          python-version: '3.11'
+
+      # ИСПРАВЛЕНО: Скачиваем новейший Kivy master прямо в репозиторий перед сборкой
+      - name: Pre-download Kivy Master
+        run: |
+          git clone --depth 1 https://github.com kivy_src
 
       - name: Install Buildozer Dependencies
         run: |
@@ -25,14 +30,10 @@ jobs:
 
       - name: Build Finished APK
         run: |
-          # ИСПРАВЛЕНО: Полностью вырезаем скрытый старый кэш 3.14, чтобы заставить робота начать с чистого листа
           rm -rf ~/.cache/pip
           rm -rf .buildozer
           
           export ANDROID_ACCEPT_SDK_LICENSE="y"
-          
-          sudo ln -sf $(which python3.11) /usr/local/bin/python3
-          sudo ln -sf $(which python3.11) /usr/bin/python3
           
           echo "============================================="
           echo "🚀 РОБОТ ЛЕОН ЗАПУСТИЛ СБОРКУ ИГРЫ ДЛЯ PICO 4!"
