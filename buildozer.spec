@@ -6,6 +6,7 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
 version = 0.1
 
+# Вырезаем сбойный тестовый мусор Python
 source.exclude_patterns = **/test/**,**/tests/**,**/unittest/**
 
 requirements = python3,kivy
@@ -19,10 +20,10 @@ android.skip_update = False
 
 p4a.bootstrap = sdl2
 
-# ИСПРАВЛЕНО: Обновили API до 34 и убрали жесткую привязку NDK, чтобы Gradle под Java 17 сработал идеально!
+# ИСПРАВЛЕНО: Сбалансировали версии API для стабильной упаковки Gradle
 android.api = 34
-android.minapi = 21
-android.ndk_api = 21
+android.minapi = 24
+android.ndk_api = 24
 
 [buildozer]
 log_level = 2
