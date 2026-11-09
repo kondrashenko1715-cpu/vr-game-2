@@ -8,8 +8,8 @@ version = 0.1
 
 source.exclude_patterns = **/test/**,**/tests/**,**/unittest/**
 
-# ИСПРАВЛЕНО: Убрали жесткую привязку к 3.11, разрешив сборку на новейшем Python 3.14
-requirements = python3,kivy==2.3.0
+# ИСПРАВЛЕНО: Перешли на супер-стабильную мобильную версию Kivy 2.2.0
+requirements = python3==3.11.11,kivy==2.2.0
 
 orientation = landscape
 fullscreen = 1
