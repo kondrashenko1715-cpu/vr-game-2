@@ -11,11 +11,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up Python
+      - name: Set up Python 3.11
         uses: actions/setup-python@v5
         with:
-          # ИСПРАВЛЕНО: Разрешаем серверу использовать встроенный современный Python
-          python-version: '3.11'
+          python-version: '3.11.11'
 
       - name: Install Buildozer Dependencies
         run: |
@@ -24,30 +23,57 @@ jobs:
           pip install --upgrade pip
           pip install buildozer cython==0.29.36
 
-      - name: Build Finished APK
+      - name: Build Finished APK with Protection Loop
         run: |
-          rm -rf ~/.cache/pip
-          rm -rf .buildozer
-          
           export ANDROID_ACCEPT_SDK_LICENSE="y"
           
-          echo "============================================="
-          echo "🚀 РОБОТ ЛЕОН НАЧАЛ СБОРКУ ИГРЫ НА PYTHON 3.14..."
-          echo "============================================="
-          
-          if ! buildozer android debug > build.log 2>&1; then
+          # Запускаем цикл защиты (максимум 10 попыток пересборки)
+          for attempt in {1..10}; do
+            echo "--------------------------------------------------------"
+            echo "🚀 ПОПЫТКА СБОРКИ №$attempt ИЗ 10..."
+            echo "--------------------------------------------------------"
+            
+            # Перед каждым запуском очищаем скрытый кэш pip, чтобы сервер не брал оттуда 3.14
+            rm -rf ~/.cache/pip
+            
+            # Жестко связываем системные команды с версией 3.11
+            sudo ln -sf $(which python3.11) /usr/local/bin/python3
+            sudo ln -sf $(which python3.11) /usr/bin/python3
+            
+            # Запускаем сборку Buildozer в файл
+            buildozer android debug > build.log 2>&1
+            BUILDOZER_STATUS=$?
+            
+            # Проверяем, проскочил ли сбойный Python 3.14 внутрь лога
+            if grep -q "python3.14" build.log; then
+              echo "⚠️ ВНИМАНИЕ: Робот снова попытался скачать Python 3.14!"
+              echo "🪓 Удаляем сбойную платформу и принудительно сбрасываем настройки..."
+              buildozer android clean
+              rm -rf .buildozer/android/platform/build-arm64-v8a/dists/
+              
+              if [ $attempt -eq 10 ]; then
+                echo "❌ ОШИБКА: Робот 10 раз подряд попытался скачать Python 3.14. Сборка остановлена."
+                tail -n 100 build.log
+                exit 1
+              fi
+              continue
+            fi
+            
+            # Если сборка упала по другой причине — выводим лог ошибки
+            if [ $BUILDOZER_STATUS -ne 0 ]; then
+              echo "❌ СБОЙ СБОРКИ! Выводим хвостик лога:"
+              tail -n 150 build.log
+              exit 1
+            fi
+            
+            # Если сборка прошла успешно и скачался правильный Python 3.11
             echo "============================================="
-            echo "❌ СБОЙ СБОРКИ! ВЫВОДИМ ТОЛЬКО СТРОЧКИ ОШИБКИ:"
+            echo "🎉 УСПЕХ! ИСПОЛЬЗОВАН PYTHON 3.11! КОПИРУЕМ APK..."
             echo "============================================="
-            tail -n 150 build.log
-            exit 1
-          fi
-          
-          echo "============================================="
-          echo "📦 УСПЕХ! ИГРА СОБРАНА! КОПИРУЕМ APK..."
-          echo "============================================="
-          mkdir -p output_apk
-          find . -name "*.apk" -exec cp {} output_apk/app-debug.apk \;
+            mkdir -p output_apk
+            find . -name "*.apk" -exec cp {} output_apk/app-debug.apk \;
+            break
+          done
 
       - name: Upload APK to GitHub Artifacts
         uses: actions/upload-artifact@v4
