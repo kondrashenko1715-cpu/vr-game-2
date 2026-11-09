@@ -31,14 +31,27 @@ jobs:
           export ANDROID_ACCEPT_SDK_LICENSE="y"
           
           echo "============================================="
-          echo "🚀 ЧЕСТНЫЙ ЗАПУСК СБОРКИ ДЛЯ PICO 4..."
+          echo "🚀 РОБОТ ЛЕОН НАЧАЛ СБОРКУ ИГРЫ В ТИХОМ РЕЖИМЕ..."
           echo "============================================="
           
-          # ИСПРАВЛЕНО: Полностью убран фильтр grep и || true, чтобы увидеть точную причину падения на финише
-          buildozer android debug
+          # ИСПРАВЛЕНО: Прячем весь пулеметный дебаг в скрытый файл build.log. 
+          # Экран будет абсолютно чистым, без лавины текста!
+          if ! buildozer android debug > build.log 2>&1; then
+            echo "============================================="
+            echo "❌ СБОЙ СБОРКИ! ВЫВОДИМ ТОЛЬКО СТРОЧКИ ОШИБКИ:"
+            echo "============================================="
+            tail -n 150 build.log
+            exit 1
+          fi
+          
+          echo "============================================="
+          echo "📦 УСПЕХ! ИГРА СОБРАНА! КОПИРУЕМ APK..."
+          echo "============================================="
+          mkdir -p output_apk
+          find . -name "*.apk" -exec cp {} output_apk/app-debug.apk \;
 
       - name: Upload APK to GitHub Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: python-vr-apk
-          path: bin/*.apk
+          path: output_apk/app-debug.apk
