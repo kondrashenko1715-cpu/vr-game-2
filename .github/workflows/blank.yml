@@ -11,11 +11,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 1. СТАРАЯ НАДЁЖНАЯ НАСТРОЙКА PYTHON И JAVA
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11.11'
+          python-version: '3.11'
 
       - name: Set up JDK 11
         uses: actions/setup-java@v4
@@ -23,32 +22,44 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
-      # 2. ГИБРИДНАЯ УСТАНОВКА СТАБИЛЬНЫХ СБОРЩИКОВ
+      # Устанавливаем системные пакеты
       - name: Install Buildozer Dependencies
         run: |
           sudo apt-get update
           sudo apt-get install -y git zip unzip openjdk-11-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libffi-dev libltdl-dev
           pip install --upgrade pip
-          # Жестко фиксируем версию buildozer, которая не умеет качать Python 3.14
-          pip install buildozer==1.5.0 cython==0.29.36
+          pip install buildozer cython==0.29.36 python-for-android==2024.1.21
 
-      # 3. НАДЁЖНЫЙ ФИНАЛЬНЫЙ ЗАПУСК С ОЧИСТКОЙ
       - name: Build Finished APK
         run: |
-          rm -rf ~/.buildozer
-          rm -rf ~/.cache/pip
-          rm -rf .buildozer
-          
           export ANDROID_ACCEPT_SDK_LICENSE="y"
           export JAVA_HOME=$JAVA_HOME_11_X64
           export PATH=$JAVA_HOME/bin:$PATH
           
           echo "============================================="
-          echo "🚀 ГИБРИДНЫЙ РОБОТ ЗАПУСТИЛ СБОРКУ НА PYTHON 3.11..."
+          echo "🚀 РОБОТ ЛЕОН ЗАПУСТИЛ УМНУЮ СБОРКУ ДЛЯ PICO 4!"
           echo "============================================="
           
-          buildozer android debug
-
+          # УМНЫЙ ФИЛЬТР: Скрываем пулеметный дебаг в файл, а на экран пишем только по одному главному слову!
+          buildozer android debug 2>&1 | tee build_full.log | grep --line-buffered -E "Building|Compiling target|Package|Applying patch|# |Installing|ERROR|Exception|failed" | sed -u -E '
+            s/.*Building ([a-zA-Z0-9_#-]+).*/🔨 Собираем: \1.../
+            s/.*Compiling target ([a-zA-Z0-9_#-]+).*/⚙️ Компилируем: \1.../
+            s/.*Applying patch.*/🩹 Накладываем патч.../
+            s/.*Installing ([a-zA-Z0-9_#-]+).*/📦 Ставим модуль: \1.../
+            s/.*Package.*/🎁 Упаковка приложения.../
+          '
+          
+          BUILDOZER_STATUS=${PIPESTATUS[0]}
+          
+          # Если произошел сбой — выводим только хвостик реальной ошибки из полного лога
+          if [ $BUILDOZER_STATUS -ne 0 ]; then
+            echo "============================================="
+            echo "❌ ТОЧНАЯ ОШИБКА СБОРКИ НА ФИНАЛЬНОМ ШАГЕ:"
+            echo "============================================="
+            tail -n 100 build_full.log
+            exit 1
+          fi
+          
           echo "============================================="
           echo "📦 УСПЕХ! ИГРА СОБРАНА! КОПИРУЕМ APK..."
           echo "============================================="
