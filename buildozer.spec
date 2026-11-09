@@ -8,8 +8,8 @@ version = 0.1
 
 source.exclude_patterns = **/test/**,**/tests/**,**/unittest/**
 
-# ИСПРАВЛЕНО: Даем упрямому Buildozer его любимый Python 3.14.2, но подключаем исправленную ветку Kivy master!
-requirements = python3==3.14.2, kivy==master
+# ИСПРАВЛЕНО: Убрали ==master, оставив чистый стабильный Kivy под Python 3.14.2
+requirements = python3==3.14.2,kivy
 
 orientation = landscape
 fullscreen = 1
