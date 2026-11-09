@@ -22,7 +22,6 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
-      # Устанавливаем системные пакеты
       - name: Install Buildozer Dependencies
         run: |
           sudo apt-get update
@@ -30,6 +29,7 @@ jobs:
           pip install --upgrade pip
           pip install buildozer cython==0.29.36 python-for-android==2024.1.21
 
+       Caviar:
       - name: Build Finished APK
         run: |
           export ANDROID_ACCEPT_SDK_LICENSE="y"
@@ -37,10 +37,18 @@ jobs:
           export PATH=$JAVA_HOME/bin:$PATH
           
           echo "============================================="
+          echo "🚀 ВЫДАЕМ АДМИНИСТРАТИВНЫЕ ПРАВА ДЛЯ GRADLE..."
+          echo "============================================="
+          
+          # ЖЕСТКИЙ ХАК: Заранее создаем структуру папок и даем максимальные права на запуск gradlew
+          mkdir -p .buildozer/android/platform/build-arm64-v8a/dists/picopythongame
+          touch .buildozer/android/platform/build-arm64-v8a/dists/picopythongame/gradlew
+          chmod -R 775 .buildozer/
+          
+          echo "============================================="
           echo "🚀 РОБОТ ЛЕОН ЗАПУСТИЛ УМНУЮ СБОРКУ ДЛЯ PICO 4!"
           echo "============================================="
           
-          # УМНЫЙ ФИЛЬТР: Скрываем пулеметный дебаг в файл, а на экран пишем только по одному главному слову!
           buildozer android debug 2>&1 | tee build_full.log | grep --line-buffered -E "Building|Compiling target|Package|Applying patch|# |Installing|ERROR|Exception|failed" | sed -u -E '
             s/.*Building ([a-zA-Z0-9_#-]+).*/🔨 Собираем: \1.../
             s/.*Compiling target ([a-zA-Z0-9_#-]+).*/⚙️ Компилируем: \1.../
@@ -49,9 +57,8 @@ jobs:
             s/.*Package.*/🎁 Упаковка приложения.../
           '
           
-          BUILDOZER_STATUS=${PIPESTATUS[0]}
+          BUILDOZER_STATUS=${PIPESTATUS}
           
-          # Если произошел сбой — выводим только хвостик реальной ошибки из полного лога
           if [ $BUILDOZER_STATUS -ne 0 ]; then
             echo "============================================="
             echo "❌ ТОЧНАЯ ОШИБКА СБОРКИ НА ФИНАЛЬНОМ ШАГЕ:"
