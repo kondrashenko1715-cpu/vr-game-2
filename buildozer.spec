@@ -6,10 +6,10 @@ source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
 version = 0.1
 
-# Вырезаем сбойный тестовый мусор Python
 source.exclude_patterns = **/test/**,**/tests/**,**/unittest/**
 
-requirements = python3,kivy
+# ИСПРАВЛЕНО: Намертво привязали стабильную версию Python 3.11.11, чтобы перекрыть скачивание 3.14
+requirements = python3==3.11.11,kivy
 
 orientation = landscape
 fullscreen = 1
@@ -20,7 +20,6 @@ android.skip_update = False
 
 p4a.bootstrap = sdl2
 
-# ИСПРАВЛЕНО: Сбалансировали версии API для стабильной упаковки Gradle
 android.api = 34
 android.minapi = 24
 android.ndk_api = 24
