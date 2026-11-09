@@ -22,7 +22,7 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
-       Caviar:
+      # ИСПРАВЛЕНО: Убрана случайная строчка-опечатка
       - name: Install Buildozer Dependencies
         run: |
           sudo apt-get update
@@ -34,7 +34,6 @@ jobs:
         run: |
           export ANDROID_ACCEPT_SDK_LICENSE="y"
           
-          # ИСПРАВЛЕНО: Насильно заставляем Buildozer и Gradle использовать установленную Java 11
           export JAVA_HOME=$JAVA_HOME_11_X64
           export PATH=$JAVA_HOME/bin:$PATH
           
