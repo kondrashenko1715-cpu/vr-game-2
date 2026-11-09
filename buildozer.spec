@@ -8,8 +8,8 @@ version = 0.1
 
 source.exclude_patterns = **/test/**,**/tests/**,**/unittest/**
 
-# ИСПРАВЛЕНО: Указываем скачивать новейший Kivy (master) напрямую с GitHub, который совместим с Python 3.14!
-requirements = python3, https://github.com
+# ИСПРАВЛЕНО: Указали правильный формат скачивания новейшей ветки Kivy (master)
+requirements = python3, git+https://github.com
 
 orientation = landscape
 fullscreen = 1
