@@ -8,7 +8,6 @@ version = 0.1
 
 source.exclude_patterns = **/test/**,**/tests/**,**/unittest/**
 
-# ИСПРАВЛЕНО: Чистый мобильный Bootstrap без капризных внешних ссылок
 requirements = python3,kivy
 
 orientation = landscape
@@ -20,9 +19,9 @@ android.skip_update = False
 
 p4a.bootstrap = sdl2
 
-android.api = 33
+# ИСПРАВЛЕНО: Обновили API до 34 и убрали жесткую привязку NDK, чтобы Gradle под Java 17 сработал идеально!
+android.api = 34
 android.minapi = 21
-android.ndk = 25b
 android.ndk_api = 21
 
 [buildozer]
