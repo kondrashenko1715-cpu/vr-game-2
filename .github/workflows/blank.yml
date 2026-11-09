@@ -1,8 +1,10 @@
 name: Build Python Autonomous APK
 on: [push, workflow_dispatch]
 
+# Добавляем глобальный запрет на генерацию байткода, чтобы обойти чужие ошибки синтаксиса
 env:
   P4A_NUM_WORKERS: 1
+  PYTHONDONTWRITEBYTECODE: 1
 
 jobs:
   build:
@@ -25,7 +27,7 @@ jobs:
       - name: Install Buildozer Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y git zip unzip openjdk-11-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libffi-dev libltdl-dev
+          sudo apt-get install -y git zip unzip openjdk-11-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libffi-dev libltdl-dev dos2unix
           pip install --upgrade pip
           pip install buildozer cython==0.29.36 python-for-android==2024.1.21
 
@@ -36,21 +38,27 @@ jobs:
           export PATH=$JAVA_HOME/bin:$PATH
           
           echo "============================================="
+          echo "🚀 ЛЕЧИМ НЕВИДИМЫЕ СИМВОЛЫ И КОДИРОВКУ PYTHON..."
+          echo "============================================="
+          
+          dos2unix main.py
+          sed -i '1s/^\xef\xbb\xbf//' main.py
+          
+          echo "============================================="
           echo "🚀 РОБОТ ЛЕОН ЗАПУСТИЛ ФИНАЛЬНУЮ СБОРКУ ДЛЯ PICO 4!"
           echo "============================================="
           
-          # Запускаем сборку, перехватив управление логами
           set +e
+          # Передаем флаг отключения компиляции байткода напрямую внутрь Buildozer
+          export PYTHONDONTWRITEBYTECODE=1
           buildozer android debug > build_raw.log 2>&1
           BUILDOZER_STATUS=$?
           set -e
           
-          # Если упал — выводим честный отчёт Gradle на экран без системного спама
           if [ $BUILDOZER_STATUS -ne 0 ]; then
             echo "============================================="
             echo "❌ ТОЧНАЯ ОШИБКА СБОРКИ НА ФИНАЛЬНОМ ШАГЕ:"
             echo "============================================="
-            # Ловим только строки, содержащие реальные ошибки компилятора
             grep -E "ERR|Exception|failed|Error:" build_raw.log | tail -n 100
             exit 1
           fi
