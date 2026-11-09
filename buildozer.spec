@@ -8,7 +8,8 @@ version = 0.1
 
 source.exclude_patterns = **/test/**,**/tests/**,**/unittest/**
 
-requirements = python3==3.11.11,kivy
+# ИСПРАВЛЕНО: Даем упрямому Buildozer его любимый Python 3.14.2, но подключаем исправленную ветку Kivy master!
+requirements = python3==3.14.2, kivy==master
 
 orientation = landscape
 fullscreen = 1
@@ -19,7 +20,6 @@ android.skip_update = False
 
 p4a.bootstrap = sdl2
 
-# ИСПРАВЛЕНО: Принудительно выставляем супер-стабильную версию NDK 26b под Android API 34
 android.api = 34
 android.minapi = 24
 android.ndk = 26b
