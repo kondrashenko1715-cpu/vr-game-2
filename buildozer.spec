@@ -8,7 +8,7 @@ version = 0.1
 
 source.exclude_patterns = **/test/**,**/tests/**,**/unittest/**
 
-# ИСПРАВЛЕНО: Жестко фиксируем одинаковую стабильную версию для телефона И для самого сервера сборщика!
+# Жестко держим одинаковую стабильную версию для телефона И для самого сервера сборщика!
 requirements = python3==3.11.11, hostpython3==3.11.11, kivy
 
 orientation = landscape
@@ -20,10 +20,11 @@ android.skip_update = False
 
 p4a.bootstrap = sdl2
 
-android.api = 34
-android.minapi = 24
-android.ndk = 26b
-android.ndk_api = 24
+# ИСПРАВЛЕНО: Вернули золотой стандарт под Java 11, где Kivy и PyJNIus собираются идеально
+android.api = 33
+android.minapi = 21
+android.ndk = 25b
+android.ndk_api = 21
 
 [buildozer]
 log_level = 2
