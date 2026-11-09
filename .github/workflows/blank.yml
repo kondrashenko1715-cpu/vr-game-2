@@ -14,15 +14,16 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.11.11'
 
+      # Устанавливаем стабильную Java 11 для упаковщика
       - name: Set up JDK 11
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '11'
 
-      # ИСПРАВЛЕНО: Убрана случайная строчка-опечатка
+      # Устанавливаем системные пакеты
       - name: Install Buildozer Dependencies
         run: |
           sudo apt-get update
@@ -33,13 +34,16 @@ jobs:
       - name: Build Finished APK
         run: |
           export ANDROID_ACCEPT_SDK_LICENSE="y"
-          
           export JAVA_HOME=$JAVA_HOME_11_X64
           export PATH=$JAVA_HOME/bin:$PATH
           
           echo "============================================="
-          echo "🚀 РОБОТ ЛЕОН ЗАПУСТИЛ ФИНАЛЬНУЮ СБОРКУ ДЛЯ PICO 4!"
+          echo "🚀 УНИЧТОЖАЕМ СЛЕДЫ PYTHON 3.14 НА СЕРВЕРЕ..."
           echo "============================================="
+          
+          # ЖЕСТКОЕ ИСПРАВЛЕНИЕ: принудительно перенаправляем глобальный вызов python3 строго на 3.11
+          alias python3=python3.11
+          alias python=python3.11
           
           if ! buildozer android debug > build.log 2>&1; then
             echo "============================================="
