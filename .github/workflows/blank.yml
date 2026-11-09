@@ -1,7 +1,6 @@
 name: Build Python Autonomous APK
 on: [push, workflow_dispatch]
 
-# Защита памяти: жестко фиксируем один поток для всего сервера сразу
 env:
   P4A_NUM_WORKERS: 1
 
@@ -26,9 +25,12 @@ jobs:
 
       - name: Build Finished APK
         run: |
+          # ИСПРАВЛЕНО: Полностью вырезаем скрытый старый кэш 3.14, чтобы заставить робота начать с чистого листа
+          rm -rf ~/.cache/pip
+          rm -rf .buildozer
+          
           export ANDROID_ACCEPT_SDK_LICENSE="y"
           
-          # Жестко связываем системные команды с версией Python 3.11
           sudo ln -sf $(which python3.11) /usr/local/bin/python3
           sudo ln -sf $(which python3.11) /usr/bin/python3
           
@@ -36,12 +38,10 @@ jobs:
           echo "🚀 РОБОТ ЛЕОН ЗАПУСТИЛ СБОРКУ ИГРЫ ДЛЯ PICO 4!"
           echo "============================================="
           
-          # ИСПРАВЛЕНО: Убрали цикл из 10 попыток. Запускаем один чистый процесс в файл лога build.log.
           if ! buildozer android debug > build.log 2>&1; then
             echo "============================================="
             echo "❌ ТОЧНАЯ ОШИБКА СБОРКИ НА ФИНАЛЬНОМ ШАГЕ:"
             echo "============================================="
-            # Ловушка: если сборка упала, выводим только последние 150 строк с сутью ошибки
             tail -n 150 build.log
             exit 1
           fi
