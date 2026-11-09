@@ -8,8 +8,8 @@ version = 0.1
 
 source.exclude_patterns = **/test/**,**/tests/**,**/unittest/**
 
-# ИСПРАВЛЕНО: Убрали ==master, оставив чистый стабильный Kivy под Python 3.14.2
-requirements = python3==3.14.2,kivy
+# ИСПРАВЛЕНО: Жестко фиксируем одинаковую стабильную версию для телефона И для самого сервера сборщика!
+requirements = python3==3.11.11, hostpython3==3.11.11, kivy
 
 orientation = landscape
 fullscreen = 1
