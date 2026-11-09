@@ -22,7 +22,6 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
-       Caviar:
       - name: Install Buildozer Dependencies
         run: |
           sudo apt-get update
@@ -40,8 +39,7 @@ jobs:
           echo "🚀 РОБОТ ЛЕОН ЗАПУСТИЛ ФИНАЛЬНУЮ СБОРКУ ДЛЯ PICO 4!"
           echo "============================================="
           
-          # ИСПРАВЛЕНО: Убран скрытый файл. Используем умный фильтр заголовков,
-          # который покажет ошибку старта моментально, если она произойдет!
+          # Умный фильтр заголовков без скрытия лога в файл
           buildozer android debug 2>&1 | grep --line-buffered -E "ℹ️|Entering|Leaving|Building|Compiling target|Package|Applying patch|# |Installing|ERROR|Exception|failed"
 
           echo "============================================="
