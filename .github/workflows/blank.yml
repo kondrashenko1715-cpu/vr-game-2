@@ -16,11 +16,7 @@ jobs:
         with:
           python-version: '3.11'
 
-      # ИСПРАВЛЕНО: Скачиваем новейший Kivy master прямо в репозиторий перед сборкой
-      - name: Pre-download Kivy Master
-        run: |
-          git clone --depth 1 https://github.com kivy_src
-
+      # Оставляем только стандартную чистую установку зависимостей
       - name: Install Buildozer Dependencies
         run: |
           sudo apt-get update
