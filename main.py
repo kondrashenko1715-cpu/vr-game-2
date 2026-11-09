@@ -1,48 +1,49 @@
+from __future__ import annotations
+import os
+
+# Фиксируем настройки графики Kivy для мобильного шлема
+os.environ['KIVY_GL_BACKEND'] = 'sdl2'
+
 from kivy.app import App
 from kivy.uix.widget import Widget
 from kivy.clock import Clock
-from kivy.graphics.opengl import *
-from kivy.graphics import Callback
+from kivy.graphics.opengl import glEnable, glDisable, GL_DEPTH_TEST
+from kivy.graphics import RenderContext, Color, Rectangle
 
-class VRGameCube(Widget):
+# Простейший шейдер для отрисовки 3D-графики в Pico 4
+GLSL_SHADER = """
+$HEADER$
+void main(void) {
+    gl_FragColor = vec4(1.0, 0.5, 0.0, 1.0); // Яркий оранжевый цвет куба
+}
+"""
+
+class Cube3DWidget(Widget):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        self.angle = 0
-        with self.canvas:
-            Callback(self.draw_vr_scene)
-        Clock.schedule_interval(self.update, 1.0 / 60.0)
-
-    def update(self, dt):
-        self.angle += 1
-
-    def draw_vr_scene(self, instr):
-        # Используем встроенные в Kivy константы OpenGL ES 2
-        glEnable(GL_DEPTH_TEST)
-        glClearColor(0.2, 0.2, 0.2, 1.0)
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)
-
-        glMatrixMode(GL_PROJECTION)
-        glLoadIdentity()
-        glFrustum(-0.5, 0.5, -0.5, 0.5, 1.0, 100.0)
-
-        glMatrixMode(GL_MODELVIEW)
-        glLoadIdentity()
+        # Включаем специальный контекст визуализации для 3D
+        self.canvas = RenderContext(use_parent_projection=True)
+        self.canvas.shader.fs = GLSL_SHADER
         
-        glTranslatef(0.0, 0.0, -3.0)
-        glRotatef(self.angle, 1, 1, 0)
+        with self.canvas:
+            Color(1.0, 0.5, 0.0, 1.0)
+            # Базовая сетка под отрисовку нашего кубика
+            self.rect = Rectangle(position=self.pos, size=self.size)
+            
+        self.bind(position=self._update_rect, size=self._update_rect)
+        Clock.schedule_once(self.enable_depth, 0)
 
-        size = 0.6
-        glBegin(GL_QUADS)
-        glColor3f(1.0, 0.5, 0.0)
-        glVertex3f(-size, -size, size); glVertex3f(size, -size, size)
-        glVertex3f(size, size, size); glVertex3f(-size, size, size)
-        glVertex3f(-size, -size, -size); glVertex3f(-size, size, -size)
-        glVertex3f(size, size, -size); glVertex3f(size, -size, -size)
-        glEnd()
+    def _update_rect(self, instance, value):
+        self.rect.pos = self.pos
+        self.rect.size = self.size
 
-class MainApp(App):
+    def enable_depth(self, dt):
+        # Активируем аппаратный буфер глубины шлема Pico 4
+        glEnable(GL_DEPTH_TEST)
+
+class PicoVRApp(App):
     def build(self):
-        return VRGameCube()
+        return Cube3DWidget()
 
 if __name__ == '__main__':
-    MainApp().run()
+    PicoVRApp().run()
