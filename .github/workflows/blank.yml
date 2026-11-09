@@ -29,7 +29,6 @@ jobs:
           pip install --upgrade pip
           pip install buildozer cython==0.29.36 python-for-android==2024.1.21
 
-       Caviar:
       - name: Build Finished APK
         run: |
           export ANDROID_ACCEPT_SDK_LICENSE="y"
@@ -40,7 +39,7 @@ jobs:
           echo "🚀 ВЫДАЕМ АДМИНИСТРАТИВНЫЕ ПРАВА ДЛЯ GRADLE..."
           echo "============================================="
           
-          # ЖЕСТКИЙ ХАК: Заранее создаем структуру папок и даем максимальные права на запуск gradlew
+          # Заранее создаем структуру папок и даем максимальные права на запуск gradlew
           mkdir -p .buildozer/android/platform/build-arm64-v8a/dists/picopythongame
           touch .buildozer/android/platform/build-arm64-v8a/dists/picopythongame/gradlew
           chmod -R 775 .buildozer/
