@@ -31,16 +31,21 @@ jobs:
 
       - name: Build Finished APK
         run: |
+          # ИСПРАВЛЕНО: Тотально вырезаем скрытый глобальный кэш, где застрял старый Python 3.14!
+          rm -rf ~/.buildozer
+          rm -rf ~/.cache/pip
+          rm -rf .buildozer
+          
           export ANDROID_ACCEPT_SDK_LICENSE="y"
           export JAVA_HOME=$JAVA_HOME_11_X64
           export PATH=$JAVA_HOME/bin:$PATH
           
           echo "============================================="
-          echo "🚀 РОБОТ ЛЕОН ЗАПУСТИЛ ФИНАЛЬНУЮ СБОРКУ ДЛЯ PICO 4!"
+          echo "🚀 РОБОТ ЛЕОН ЗАПУСТИЛ ЧИСТУЮ СБОРКУ ДЛЯ PICO 4!"
           echo "============================================="
           
-          # Умный фильтр заголовков без скрытия лога в файл
-          buildozer android debug 2>&1 | grep --line-buffered -E "ℹ️|Entering|Leaving|Building|Compiling target|Package|Applying patch|# |Installing|ERROR|Exception|failed"
+          # Запускаем штатную команду сборки без скрытия ошибок, чтобы система отработала честно
+          buildozer android debug
 
           echo "============================================="
           echo "📦 УСПЕХ! ИГРА СОБРАНА! КОПИРУЕМ APK..."
