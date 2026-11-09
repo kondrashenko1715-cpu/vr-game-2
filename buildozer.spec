@@ -8,8 +8,8 @@ version = 0.1
 
 source.exclude_patterns = **/test/**,**/tests/**,**/unittest/**
 
-# ИСПРАВЛЕНО: Указали правильный формат скачивания новейшей ветки Kivy (master)
-requirements = python3, git+https://github.com
+# ИСПРАВЛЕНО: Чистый мобильный Bootstrap без капризных внешних ссылок
+requirements = python3,kivy
 
 orientation = landscape
 fullscreen = 1
@@ -17,6 +17,8 @@ android.archs = arm64-v8a
 android.allow_skip_x86 = True
 android.accept_sdk_license = True
 android.skip_update = False
+
+p4a.bootstrap = sdl2
 
 android.api = 33
 android.minapi = 21
