@@ -8,8 +8,8 @@ version = 0.1
 
 source.exclude_patterns = **/test/**,**/tests/**,**/unittest/**
 
-# ИСПРАВЛЕНО: Перешли на супер-стабильную мобильную версию Kivy 2.2.0
-requirements = python3==3.11.11,kivy==2.2.0
+# ИСПРАВЛЕНО: Указываем скачивать новейший Kivy (master) напрямую с GitHub, который совместим с Python 3.14!
+requirements = python3, https://github.com
 
 orientation = landscape
 fullscreen = 1
