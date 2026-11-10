@@ -14,15 +14,15 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # ИСПРАВЛЕНО: Качаем строго современный Godot 4.2 через стабильный канал Snap!
+      # ИСПРАВЛЕНО: Ставим стабильный официальный Godot через системный snap без указания капризных каналов!
       - name: Install Godot via Snap
         run: |
-          sudo snap install godot --classic --channel=4.2/stable
+          sudo snap install godot --classic
           
-          # Скачиваем мобильные шаблоны OpenXR через официальный защищенный прокси GitHub
+          # Скачиваем и распаковываем шаблоны через проверенный curl и стабильный unzip
           mkdir -p ~/.local/share/godot/export_templates/4.2.2.stable
           curl -L -o templates.zip https://github.com
-          jar -xf templates.zip
+          unzip -o templates.zip
           mv templates/* ~/.local/share/godot/export_templates/4.2.2.stable/
 
       # ФИНАЛЬНАЯ ПРЯМАЯ СБОРКА НАШЕГО ОРАНЖЕВОГО 3D VR-КУБА БЕЗ ВЫЛЕТОВ
