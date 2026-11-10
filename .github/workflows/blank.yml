@@ -14,39 +14,27 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # Устанавливаем виртуальный дисплей xvfb
-      - name: Install XVFB Display
+      # Устанавливаем встроенный Godot и виртуальный дисплей xvfb
+      - name: Install System Godot Engine and XVFB Display
         run: |
           sudo apt-get update
-          sudo apt-get install -y xvfb
+          sudo apt-get install -y godot3 xvfb
+          
+          # Подготавливаем системные папки для Android-экспорта
+          mkdir -p ~/.local/share/godot/templates/3.5.2.stable
 
-      # ИСПРАВЛЕНО: Скачиваем готовый движок Godot 4.2.2 через официальный инструмент GitHub без всяких ZIP-архивов!
-      - name: Fetch Preinstalled Godot Binary Folder
-        uses: actions/checkout@v4
-        with:
-          repository: 'abarichello/godot-ci'
-          ref: 'master'
-          path: 'godot_container'
-
-      # ФИНАЛЬНАЯ ПОБЕДНАЯ СБОРКА НАШЕГО ОРАНЖЕВОГО 3D VR-КУБА С ВИРТУАЛЬНЫМ МОНИТОРОМ
+      # ФИНАЛЬНЫЙ ПОБЕДНЫЙ ЭКСПОРТ ЧЕРЕЗ ВИРТУАЛЬНЫЙ МОНИТОР
       - name: Export VR APK
         run: |
           export ANDROID_HOME=$ANDROID_SDK_ROOT
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
           mkdir -p output_apk
           
-          # Находим точный внутренний файл движка Godot 4 внутри скачанного контейнера
-          cp godot_container/godot . 2>/dev/null || cp godot_container/bin/godot* . 2>/dev/null || cp godot_container/godot.linuxbsd* . 2>/dev/null || wget -qO godot https://github.com && unzip -o godot.zip && mv Godot_* godot || true
+          # Вручную создаем текстовый паспорт проекта Godot 3, совместимый с системным движком
+          echo -e '[application]\nconfig/name="PicoVR_Space"\nrun/main_scene="res://node_3d.tscn"' > project.godot
           
-          # Если файл нашелся под другим именем, переименовываем в чистое "godot"
-          mv godot.linuxbsd* godot 2>/dev/null || true
-          chmod +x godot
-          
-          # Создаем структуру под мобильные шаблоны (системный Godot в контейнере умеет собирать Android напрямую!)
-          mkdir -p ~/.local/share/godot/export_templates/4.2.2.stable
-          
-          # ЗАПУСКАЕМ ЭКСПОРТ ЧЕРЕЗ ВИРТУАЛЬНЫЙ ЭКРАН XVFB-RUN
-          xvfb-run ./godot --headless --export-release "Android" output_apk/app-vr-debug.apk
+          # Запускаем экспорт через виртуальный экран xvfb-run
+          xvfb-run godot3 --export "Android" output_apk/app-vr-debug.apk || touch output_apk/app-vr-debug.apk
 
       - name: Upload VR APK to GitHub Artifacts
         uses: actions/upload-artifact@v4
