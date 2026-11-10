@@ -29,7 +29,6 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y git zip unzip openjdk-11-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libffi-dev libltdl-dev dos2unix locales
           pip install --upgrade pip
-          # ИСПРАВЛЕНО: Убрали сбойную версию 2024.6.2. Ставим чистый рабочий инструментарий
           pip install buildozer cython python-for-android
 
       - name: Build Finished APK
@@ -46,12 +45,41 @@ jobs:
           dos2unix main.py buildozer.spec || true
           
           echo "============================================="
-          echo "🚀 РОБОТ ЛЕОН ЗАПУСТИЛ СБОРКУ ИГРЫ..."
+          echo "🚀 РОБОТ ЛЕОН ЗАПУСТИЛ УМНУЮ СБОРКУ ДЛЯ PICO 4!"
           echo "============================================="
           
           set +e
           export PYTHONDONTWRITEBYTECODE=1
           export PYTHONIOENCODING=utf-8
           
-          # Запускаем сборку напрямую, чтобы видеть прогресс финала
-          buildozer android debug
+          # ИСПРАВЛЕНО: Скрываем пулеметный дебаг в файл, а на экран пишем только по одному главному слову!
+          buildozer android debug 2>&1 | tee build_raw.log | grep --line-buffered -E "Building|Compiling target|Package|Applying patch|# |Installing|ERROR|Exception|failed" | sed -u -E '
+            s/.*Building ([a-zA-Z0-9_#-]+).*/🔨 Собираем: \1.../
+            s/.*Compiling target ([a-zA-Z0-9_#-]+).*/⚙️ Компилируем: \1.../
+            s/.*Applying patch.*/🩹 Накладываем патч.../
+            s/.*Installing ([a-zA-Z0-9_#-]+).*/📦 Ставим модуль: \1.../
+            s/.*Package.*/🎁 Упаковка приложения.../
+          '
+          BUILDOZER_STATUS=${PIPESTATUS[0]}
+          set -e
+          
+          # Если произошел сбой — этот блок выведет только чистый хвостик реальной ошибки
+          if [ $BUILDOZER_STATUS -ne 0 ]; then
+            echo "============================================="
+            echo "❌ КОРНЕВАЯ ОШИБКА УПАКОВЩИКА GRADLE:"
+            echo "============================================="
+            tail -n 150 build_raw.log
+            exit 1
+          fi
+          
+          echo "============================================="
+          echo "📦 УСПЕХ! ИГРА СОБРАНА! КОПИРУЕМ APK..."
+          echo "============================================="
+          mkdir -p output_apk
+          find . -name "*.apk" -exec cp {} output_apk/app-debug.apk \;
+
+      - name: Upload APK to GitHub Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: python-vr-apk
+          path: output_apk/app-debug.apk
