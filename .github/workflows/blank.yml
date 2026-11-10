@@ -14,24 +14,19 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # ПОБЕДНЫЙ ШАГ: Запускаем Godot 4 внутри Docker, но подключаем к нему мощный готовый SDK самого сервера!
+      # ИСПРАВЛЕНО: Полностью убрали капризное скачивание шаблонов через интернет и запустили сборку на встроенных файлах!
       - name: Export VR APK via Connected Container
         run: |
           mkdir -p output_apk
           
-          # Настраиваем паспорт путей Android SDK для Godot
+          # Настраиваем локальный паспорт путей Android SDK для Godot
           mkdir -p .godot/editor
           mkdir -p ~/.config/godot
           echo '[settings]' > ~/.config/godot/editor_settings-4.tres
           echo 'export/android/android_sdk_path = "/android-sdk"' >> ~/.config/godot/editor_settings-4.tres
           
-          # Скачиваем и подкладываем официальные шаблоны OpenXR, чтобы убрать ошибку строк 22-23
-          mkdir -p templates_pack/templates
-          curl -L -o templates.zip https://github.com
-          python3 -c "import zipfile; zipfile.ZipFile('templates.zip').extractall('t_out')"
-          
-          # Запускаем Docker-контейнер со сквозным доступом к Android SDK и шаблонам сервера!
-          docker run --v /usr/local/lib/android/sdk:/android-sdk -v /home/runner/.local/share/godot:/root/.local/share/godot -v $(pwd):/project -w /project barichello/godot-ci:4.2.2 godot --headless --export-debug "Android" output_apk/app-vr-debug.apk || touch output_apk/app-vr-debug.apk
+          # Исправлено: Заменили ошибочный флаг --v на правильный -v и запустили Godot на встроенных шаблонах контейнера!
+          docker run -v /usr/local/lib/android/sdk:/android-sdk -v $(pwd):/project -w /project barichello/godot-ci:4.2.2 godot --headless --export-debug "Android" output_apk/app-vr-debug.apk
 
       # Отдаем скомпилированный APK-файл игры с реальным весом в мегабайтах
       - name: Upload VR APK to GitHub Artifacts
