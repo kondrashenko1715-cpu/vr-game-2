@@ -14,43 +14,39 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # Устанавливаем виртуальный графический экран
+      # Устанавливаем виртуальный дисплей xvfb
       - name: Install XVFB Display
         run: |
           sudo apt-get update
           sudo apt-get install -y xvfb
 
-      # Подтягиваем распакованный движок из облачного контейнера
-      - name: Fetch Preinstalled Godot Binary
-        uses: actions/checkout@v4
-        with:
-          repository: 'abarichello/godot-ci'
-          ref: 'master'
-          path: 'godot_engine'
+      # ИСПРАВЛЕНО: Убрали сбойный шаг с папкой godot_engine и скачиваем чистый официальный движок напрямую через защищенный curl!
+      - name: Download and Prepare Godot 4.2.2 Engine
+        run: |
+          # Скачиваем официальную Linux-версию без Mono напрямую с серверов GitHub релизов
+          curl -L -o engine.zip https://github.com
+          python3 -c "import zipfile; zipfile.ZipFile('engine.zip').extractall('.')"
+          mv Godot_v4.2.2-stable_linux.x86_64 godot
+          chmod +x godot
+          
+          # Скачиваем официальные мобильные шаблоны OpenXR для Pico 4
+          mkdir -p ~/.local/share/godot/export_templates/4.2.2.stable
+          curl -L -o templates.zip https://github.com
+          python3 -c "import zipfile; zipfile.ZipFile('templates.zip').extractall('t_out')"
+          mv t_out/templates/* ~/.local/share/godot/export_templates/4.2.2.stable/ 2>/dev/null || true
 
-      # ЗАПУСКАЕМ ТЕСТОВЫЙ ЭКСПОРТ И ПРИНУДИТЕЛЬНО ЗАПИСЫВАЕМ ВСЕ ОШИБКИ В ФАЙЛ
-      - name: Export VR APK and Capture Logs
+      # ФИНАЛЬНАЯ СБОРКА НАШЕГО ОРАНЖЕВОГО 3D VR-КУБА С ВИРТУАЛЬНЫМ МОНИТОРОМ
+      - name: Export VR APK
         run: |
           export ANDROID_HOME=$ANDROID_SDK_ROOT
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
           mkdir -p output_apk
           
-          # Настраиваем исполняемый файл
-          cp godot_engine/godot .
-          chmod +x godot
-          
-          # Подтягиваем мобильные шаблоны OpenXR
-          mkdir -p ~/.local/share/godot/export_templates/4.2.2.stable
-          curl -L -o templates.zip https://github.com
-          python3 -c "import zipfile; zipfile.ZipFile('templates.zip').extractall('t_out')"
-          mv t_out/templates/* ~/.local/share/godot/export_templates/4.2.2.stable/ 2>/dev/null || true
-          
-          # Запускаем сборку и сохраняем текстовый отчет (лог) в папку output_apk
-          xvfb-run ./godot --headless --export-release "Android" output_apk/app-vr-debug.apk > output_apk/error_log.txt 2>&1 || true
+          # Запускаем экспорт через виртуальный экран xvfb-run
+          xvfb-run ./godot --headless --export-release "Android" output_apk/app-vr-debug.apk
 
-      # Отдаем текстовый отчет об ошибке в виде архива для чтения
       - name: Upload VR APK to GitHub Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: godot-space-vr-apk
-          path: output_apk/
+          path: output_apk/*.apk
