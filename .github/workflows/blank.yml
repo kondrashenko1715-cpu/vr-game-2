@@ -10,7 +10,7 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # ФИНАЛЬНАЯ СБОРКА: Копируем шаблоны в системный корень /root/ и собираем через флаг отладки!
+      # ФИНАЛЬНАЯ ПОБЕДНАЯ СБОРКА БЕЗ CURL
       - name: Export VR APK
         run: |
           mkdir -p output_apk
@@ -18,12 +18,12 @@ jobs:
           # Создаем точную папку шаблонов в корне суперпользователя контейнера /root/
           mkdir -p /root/.local/share/godot/export_templates/4.2.2.stable
           
-          # Скачиваем и распаковываем официальные мобильные шаблоны OpenXR прямо туда через стабильный Python
-          curl -L -o templates.zip https://github.com
+          # ИСПРАВЛЕНО: Скачиваем шаблоны силами встроенного Python, обходя отсутствие curl!
+          python3 -c "import urllib.request; urllib.request.urlretrieve('https://github.com', 'templates.zip')"
           python3 -c "import zipfile; zipfile.ZipFile('templates.zip').extractall('t_out')"
           mv t_out/templates/* /root/.local/share/godot/export_templates/4.2.2.stable/
           
-          # ЗАПУСКАЕМ СБОРКУ ЧЕРЕЗ ФЛАГ DEBUG, КОТОРЫЙ ИГНОРИРУЕТ ПУТИ JAVA SDK!
+          # ЗАПУСКАЕМ СБОРКУ ЧЕРЕЗ ФЛАГ DEBUG
           godot --headless --export-debug "Android" output_apk/app-vr-debug.apk
 
       # Отдаем скомпилированный APK-файл игры с реальным весом в мегабайтах
