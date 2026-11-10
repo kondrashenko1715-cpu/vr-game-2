@@ -4,27 +4,36 @@ on: [push, workflow_dispatch]
 jobs:
   build:
     runs-on: ubuntu-latest
-    container:
-      image: barichello/godot-ci:4.2.2
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # ФИНАЛЬНАЯ ПОБЕДНАЯ СБОРКА БЕЗ CURL
-      - name: Export VR APK
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # ЭТАП 1: Скачиваем шаблоны силами основного сервера Ubuntu, где интернет работает идеально!
+      - name: Pre-download Godot VR Templates
         run: |
-          mkdir -p output_apk
-          
-          # Создаем точную папку шаблонов в корне суперпользователя контейнера /root/
-          mkdir -p /root/.local/share/godot/export_templates/4.2.2.stable
-          
-          # ИСПРАВЛЕНО: Скачиваем шаблоны силами встроенного Python, обходя отсутствие curl!
-          python3 -c "import urllib.request; urllib.request.urlretrieve('https://github.com', 'templates.zip')"
-          python3 -c "import zipfile; zipfile.ZipFile('templates.zip').extractall('t_out')"
-          mv t_out/templates/* /root/.local/share/godot/export_templates/4.2.2.stable/
-          
-          # ЗАПУСКАЕМ СБОРКУ ЧЕРЕЗ ФЛАГ DEBUG
-          godot --headless --export-debug "Android" output_apk/app-vr-debug.apk
+          mkdir -p local_templates/4.2.2.stable
+          wget https://github.com
+          mv Godot_v4.2.2-stable_export_templates.tpz templates.zip
+          unzip templates.zip
+          mv templates/* local_templates/4.2.2.stable/
+
+      # ЭТАП 2: Запускаем Docker-контейнер и собираем APK, используя уже скачанные файлы!
+      - name: Export VR APK via Docker Container
+        uses: docker://barichello/godot-ci:4.2.2
+        with:
+          args: |
+            sh -c '
+            mkdir -p output_apk
+            mkdir -p /root/.local/share/godot/export_templates/4.2.2.stable
+            cp -r local_templates/4.2.2.stable/* /root/.local/share/godot/export_templates/4.2.2.stable/
+            godot --headless --export-debug "Android" output_apk/app-vr-debug.apk
+            '
 
       # Отдаем скомпилированный APK-файл игры с реальным весом в мегабайтах
       - name: Upload VR APK to GitHub Artifacts
