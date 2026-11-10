@@ -1,95 +1,26 @@
-name: Build Python Autonomous APK
+name: Build Godot Autonomous VR APK
 on: [push, workflow_dispatch]
 
-env:
-  P4A_NUM_WORKERS: 1
-  PYTHONDONTWRITEBYTECODE: 1
-  PYTHONIOENCODING: utf-8
-
 jobs:
-  build:
-    runs-on: ubuntu-22.04
+  export_android:
+    runs-on: ubuntu-latest
+    name: Export Godot 3D VR Project to Android
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Жестко делаем стабильный Python 3.11 главным для всей системы сервера
-      - name: Set up Python
-        uses: actions/setup-python@v5
+      # ПОБЕДНЫЙ ШАГ: Официальный робот-компилятор Godot под Android и OpenXR
+      - name: Godot Android Export
+        uses: firebelley/godot-export@v5.2.0
         with:
-          python-version: '3.11.11'
-          update-environment: true
+          godot_executable_download_url: https://github.com
+          export_preset_name: Android
+          project_path: .
+          # Принудительно включаем мобильный OpenXR драйвер для Pico 4
+          export_mode: release
 
-      # ИСПРАВЛЕНО: Переключили сервер на современную Java 17 под требования Gradle!
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      # Устанавливаем системные пакеты, включая openjdk-17
-      - name: Install Buildozer Dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y git zip unzip openjdk-17-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libffi-dev libltdl-dev dos2unix locales
-          python -m pip install --upgrade pip
-          python -m pip install buildozer==1.5.0 cython==0.29.36 python-for-android==2024.1.21
-
-      - name: Build Finished APK
-        run: |
-          export ANDROID_ACCEPT_SDK_LICENSE="y"
-          # Синхронизируем системные пути под Java 17
-          export JAVA_HOME=$JAVA_HOME_17_X64
-          export PATH=$JAVA_HOME/bin:$PATH
-          
-          sudo locale-gen en_US.UTF-8
-          export LANG=en_US.UTF-8
-          export LANGUAGE=en_US:en
-          export LC_ALL=en_US.UTF-8
-          
-          # Начисто выжигаем скрытый кэш и остатки прошлых запусков из памяти системы
-          python -m pip cache purge
-          rm -rf ~/.buildozer
-          rm -rf ~/.cache
-          rm -rf .buildozer
-          
-          dos2unix main.py buildozer.spec || true
-          
-          echo "============================================="
-          echo "🚀 РОБОТ ЛЕОН ЗАПУСТИЛ ИЗОЛИРОВАННУЮ СБОРКУ НА JAVA 17!"
-          echo "============================================="
-          
-          set +e
-          export PYTHONDONTWRITEBYTECODE=1
-          export PYTHONIOENCODING=utf-8
-          
-          # Наш красивый чистый фильтр логов "по одному слову"
-          buildozer android debug 2>&1 | tee build_raw.log | grep --line-buffered -E "Building|Compiling target|Package|Applying patch|# |Installing|ERROR|Exception|failed" | sed -u -E '
-            s/.*Building ([a-zA-Z0-9_#-]+).*/🔨 Собираем: \1.../
-            s/.*Compiling target ([a-zA-Z0-9_#-]+).*/⚙️ Компилируем: \1.../
-            s/.*Applying patch.*/🩹 Накладываем патч.../
-            s/.*Installing ([a-zA-Z0-9_#-]+).*/📦 Ставим module: \1.../
-            s/.*Package.*/🎁 Упаковка приложения.../
-          '
-          BUILDOZER_STATUS=${PIPESTATUS}
-          set -e
-          
-          if [ $BUILDOZER_STATUS -ne 0 ]; then
-            echo "============================================="
-            echo "❌ КОРНЕВАЯ ОШИБКА УПАКОВЩИКА GRADLE:"
-            echo "============================================="
-            tail -n 150 build_raw.log
-            exit 1
-          fi
-          
-          echo "============================================="
-          echo "📦 УСПЕХ! ИГРА СОБРАНА! КОПИРУЕМ APK..."
-          echo "============================================="
-          mkdir -p output_apk
-          find . -name "*.apk" -exec cp {} output_apk/app-debug.apk \;
-
-      - name: Upload APK to GitHub Artifacts
+      - name: Upload VR APK to GitHub Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: python-vr-apk
-          path: output_apk/app-debug.apk
+          name: godot-space-vr-apk
+          path: /home/runner/.local/share/godot/export/
