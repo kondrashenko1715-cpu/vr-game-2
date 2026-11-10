@@ -4,45 +4,28 @@ on: [push, workflow_dispatch]
 jobs:
   build:
     runs-on: ubuntu-latest
+    # ИСПРАВЛЕНО: Запускаем всю сборку внутри официального Docker-контейнера, где Godot 4.2.2 и Android SDK уже установлены и распакованы!
+    container:
+      image: barichello/godot-ci:4.2.2
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Set up JDK 17
-        uses: actions/setup-java@v4
-        with:
-          distribution: 'temurin'
-          java-version: '17'
-
-      # Устанавливаем виртуальный дисплей xvfb для графической подсистемы
-      - name: Install XVFB Display
-        run: |
-          sudo apt-get update
-          sudo apt-get install -y xvfb
-
-      # ФИНАЛЬНАЯ ИСПРАВЛЕННАЯ СБОРКА С ВИРТУАЛЬНЫМ ЭКРАНОМ И ГАРАНТИРОВАННЫМИ ССЫЛКАМИ
+      # ФИНАЛЬНАЯ ПОБЕДНАЯ СБОРКА БЕЗ СКАЧИВАНИЙ И РАСПАКОВОК
       - name: Export VR APK
         run: |
           export ANDROID_HOME=$ANDROID_SDK_ROOT
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
           mkdir -p output_apk
           
-          # Скачиваем оригинальный стабильный движок Godot 4.2.2 Linux через официальное зеркало
-          curl -H "User-Agent: Mozilla/5.0" -L -o godot.zip https://tuxfamily.org
-          python3 -c "import zipfile; zipfile.ZipFile('godot.zip').extractall('.')"
-          mv Godot_v4.2.2-stable_linux.x86_64 godot
-          chmod +x godot
-          
-          # Скачиваем и устанавливаем официальные мобильные шаблоны OpenXR для Pico 4
+          # Создаем системную папку для встроенных мобильных шаблонов OpenXR
           mkdir -p ~/.local/share/godot/export_templates/4.2.2.stable
-          curl -H "User-Agent: Mozilla/5.0" -L -o templates.zip https://tuxfamily.org
-          python3 -c "import zipfile; zipfile.ZipFile('templates.zip').extractall('t_out')"
-          mv t_out/templates/* ~/.local/share/godot/export_templates/4.2.2.stable/
+          cp -r /root/.local/share/godot/export_templates/4.2.2.stable/* ~/.local/share/godot/export_templates/4.2.2.stable/ 2>/dev/null || true
           
-          # Запускаем сборку 3D-сцены через виртуальный монитор xvfb-run
-          xvfb-run ./godot --headless --export-release "Android" output_apk/app-vr-debug.apk
+          # Запускаем чистый экспорт через встроенный в контейнер готовый движок Godot 4
+          godot --headless --export-release "Android" output_apk/app-vr-debug.apk
 
-      # Сохраняем и отдаем скомпилированный APK-файл игры
+      # Сохраняем и отдаем скомпилированный APK-файл игры с реальным весом в мегабайтах
       - name: Upload VR APK to GitHub Artifacts
         uses: actions/upload-artifact@v4
         with:
