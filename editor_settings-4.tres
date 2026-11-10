@@ -1,0 +1,9 @@
+[gd_resource type="EditorSettings" format=3]
+
+[resource]
+export/android/android_sdk_path = "/android-sdk"
+export/android/java_sdk_path = "/usr/lib/jvm/temurin-17-jdk-amd64"
+export/android/debug_keystore = "/project/debug.keystore"
+export/android/debug_username = "androiddebugkey"
+export/android/debug_password = "android"
+export/android/shutdown_adb_on_exit = true
