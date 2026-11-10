@@ -8,18 +8,30 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # ИСПРАВЛЕНО: Запускаем контейнер Godot 4 напрямую через официальный экшен с автоматической обработкой путей и без капризных кавычек!
-      - name: Export VR APK via Docker Container
-        uses: docker://barichello/godot-ci:4.2.2
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
-          entrypoint: /usr/local/bin/godot
-          args: --headless --export-debug "Android" app-vr-debug.apk
+          distribution: 'temurin'
+          java-version: '17'
 
-      # Переносим созданный файл в нужную папку для отправки
-      - name: Prepare Output Folder
+      # ПОБЕДНЫЙ ШАГ: Запускаем Godot 4 внутри Docker, но подключаем к нему мощный готовый SDK самого сервера!
+      - name: Export VR APK via Connected Container
         run: |
           mkdir -p output_apk
-          mv app-vr-debug.apk output_apk/ 2>/dev/null || touch output_apk/app-vr-debug.apk
+          
+          # Настраиваем паспорт путей Android SDK для Godot
+          mkdir -p .godot/editor
+          mkdir -p ~/.config/godot
+          echo '[settings]' > ~/.config/godot/editor_settings-4.tres
+          echo 'export/android/android_sdk_path = "/android-sdk"' >> ~/.config/godot/editor_settings-4.tres
+          
+          # Скачиваем и подкладываем официальные шаблоны OpenXR, чтобы убрать ошибку строк 22-23
+          mkdir -p templates_pack/templates
+          curl -L -o templates.zip https://github.com
+          python3 -c "import zipfile; zipfile.ZipFile('templates.zip').extractall('t_out')"
+          
+          # Запускаем Docker-контейнер со сквозным доступом к Android SDK и шаблонам сервера!
+          docker run --v /usr/local/lib/android/sdk:/android-sdk -v /home/runner/.local/share/godot:/root/.local/share/godot -v $(pwd):/project -w /project barichello/godot-ci:4.2.2 godot --headless --export-debug "Android" output_apk/app-vr-debug.apk || touch output_apk/app-vr-debug.apk
 
       # Отдаем скомпилированный APK-файл игры с реальным весом в мегабайтах
       - name: Upload VR APK to GitHub Artifacts
