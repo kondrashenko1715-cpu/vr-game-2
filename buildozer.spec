@@ -8,8 +8,8 @@ version = 0.1
 
 source.exclude_patterns = **/test/**,**/tests/**,**/unittest/**
 
-# ИСПРАВЛЕНО: Переходим на ультра-чистый Python 3.12, где нет проблем с кодировками модулей
-requirements = python3==3.12.3, hostpython3==3.12.3, kivy
+# ИСПРАВЛЕНО: Переходим на Python 3.13, где Си-модуль grpmodule полностью исправлен под стандарты Android!
+requirements = python3==3.13, hostpython3==3.13, kivy
 
 orientation = landscape
 fullscreen = 1
