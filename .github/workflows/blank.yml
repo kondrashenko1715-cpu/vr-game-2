@@ -14,7 +14,7 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # ФИНАЛЬНАЯ ПОБЕДНАЯ СБОРКА: Жестко монтируем файл настроек прямо в системный корень Docker-контейнера!
+      # ФИНАЛЬНАЯ ПОБЕДНАЯ СБОРКА: Переименовали файл в .cfg, чтобы скрыть его от импорта Godot!
       - name: Export VR APK via Connected Container
         run: |
           mkdir -p output_apk
@@ -22,22 +22,22 @@ jobs:
           # 1. Генерируем официальный отладочный ключ Android в корне проекта
           keytool -keyalg RSA -genkeypair -alias androiddebugkey -keypass android -keystore debug.keystore -storepass android -dname "CN=Android Debug,O=Android,C=US" -validity 10000
           
-          # 2. Вручную генерируем идеальный файл настроек прямо на месте с гарантированными путями
-          echo '[settings]' > local_settings.tres
-          echo 'export/android/android_sdk_path = "/android-sdk"' >> local_settings.tres
-          echo 'export/android/java_sdk_path = "/usr/lib/jvm/temurin-17-jdk-amd64"' >> local_settings.tres
-          echo 'export/android/debug_keystore = "/project/debug.keystore"' >> local_settings.tres
-          echo 'export/android/debug_username = "androiddebugkey"' >> local_settings.tres
-          echo 'export/android/debug_password = "android"' >> local_settings.tres
-          echo 'export/android/shutdown_adb_on_exit = true' >> local_settings.tres
+          # 2. ИСПРАВЛЕНО: Создаем файл конфигурации с расширением .cfg, чтобы движок не пытался импортировать его как сцену!
+          echo '[settings]' > local_settings.cfg
+          echo 'export/android/android_sdk_path = "/android-sdk"' >> local_settings.cfg
+          echo 'export/android/java_sdk_path = "/usr/lib/jvm/temurin-17-jdk-amd64"' >> local_settings.cfg
+          echo 'export/android/debug_keystore = "/project/debug.keystore"' >> local_settings.cfg
+          echo 'export/android/debug_username = "androiddebugkey"' >> local_settings.cfg
+          echo 'export/android/debug_password = "android"' >> local_settings.cfg
+          echo 'export/android/shutdown_adb_on_exit = true' >> local_settings.cfg
           
-          # 3. ЗАПУСКАЕМ DOCKER: Напрямую подменяем системный файл конфигурации /root/.config/godot/editor_settings-4.tres файлом из корня проекта!
+          # 3. ЗАПУСКАЕМ DOCKER: Монтируем наш изолированный текстовый .cfg на место системных настроек редактора в контейнере!
           docker run \
             -e ANDROID_HOME=/android-sdk \
             -e JAVA_HOME=/usr/lib/jvm/temurin-17-jdk-amd64 \
             -v /usr/local/lib/android/sdk:/android-sdk \
             -v /usr/lib/jvm/temurin-17-jdk-amd64:/usr/lib/jvm/temurin-17-jdk-amd64 \
-            -v $(pwd)/local_settings.tres:/root/.config/godot/editor_settings-4.tres \
+            -v $(pwd)/local_settings.cfg:/root/.config/godot/editor_settings-4.tres \
             -v $(pwd):/project -w /project \
             barichello/godot-ci:4.2.2 godot --headless --export-debug "Android" output_apk/app-vr-debug.apk
 
