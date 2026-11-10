@@ -1,10 +1,10 @@
 name: Build Python Autonomous APK
 on: [push, workflow_dispatch]
 
-# Добавляем глобальный запрет на генерацию байткода, чтобы обойти чужие ошибки синтаксиса
 env:
   P4A_NUM_WORKERS: 1
   PYTHONDONTWRITEBYTECODE: 1
+  PYTHONIOENCODING: utf-8
 
 jobs:
   build:
@@ -24,6 +24,7 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
+      # Ставим утилиту dos2unix для тотальной очистки файлов
       - name: Install Buildozer Dependencies
         run: |
           sudo apt-get update
@@ -38,19 +39,22 @@ jobs:
           export PATH=$JAVA_HOME/bin:$PATH
           
           echo "============================================="
-          echo "🚀 ЛЕЧИМ НЕВИДИМЫЕ СИМВОЛЫ И КОДИРОВКУ PYTHON..."
+          echo "🚀 ВЫЖИГАЕМ СБОЙНЫЙ БАЙТ 0xF6 ИЗ ВСЕХ ФАЙЛОВ..."
           echo "============================================="
           
-          dos2unix main.py
-          sed -i '1s/^\xef\xbb\xbf//' main.py
+          # Насильно очищаем main.py от виндовс-кодировок и скрытых символов
+          dos2unix main.py buildozer.spec || true
+          
+          # Заменяем возможные скрытые байты 0xf6 на безопасные символы пустоты
+          sed -i 's/\xf6//g' main.py || true
           
           echo "============================================="
           echo "🚀 РОБОТ ЛЕОН ЗАПУСТИЛ ФИНАЛЬНУЮ СБОРКУ ДЛЯ PICO 4!"
           echo "============================================="
           
           set +e
-          # Передаем флаг отключения компиляции байткода напрямую внутрь Buildozer
           export PYTHONDONTWRITEBYTECODE=1
+          export PYTHONIOENCODING=utf-8
           buildozer android debug > build_raw.log 2>&1
           BUILDOZER_STATUS=$?
           set -e
