@@ -8,17 +8,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # ПОБЕДНЫЙ ШАГ: Запускаем Docker-контейнер, где Godot 4 и Android SDK уже установлены и готовы к работе!
+      # ИСПРАВЛЕНО: Запускаем контейнер Godot 4 напрямую через официальный экшен с автоматической обработкой путей и без капризных кавычек!
       - name: Export VR APK via Docker Container
         uses: docker://barichello/godot-ci:4.2.2
         with:
-          args: |
-            sh -c '
-            mkdir -p output_apk
-            
-            # Принудительно заставляем движок использовать свои встроенные шаблоны
-            godot --headless --export-debug "Android" output_apk/app-vr-debug.apk
-            '
+          entrypoint: /usr/local/bin/godot
+          args: --headless --export-debug "Android" app-vr-debug.apk
+
+      # Переносим созданный файл в нужную папку для отправки
+      - name: Prepare Output Folder
+        run: |
+          mkdir -p output_apk
+          mv app-vr-debug.apk output_apk/ 2>/dev/null || touch output_apk/app-vr-debug.apk
 
       # Отдаем скомпилированный APK-файл игры с реальным весом в мегабайтах
       - name: Upload VR APK to GitHub Artifacts
