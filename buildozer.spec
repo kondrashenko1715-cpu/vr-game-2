@@ -8,8 +8,8 @@ version = 0.1
 
 source.exclude_patterns = **/test/**,**/tests/**,**/unittest/**
 
-# Жестко держим одинаковую стабильную версию для телефона И для самого сервера сборщика!
-requirements = python3==3.11.11, hostpython3==3.11.11, kivy
+# ИСПРАВЛЕНО: Переходим на ультра-чистый Python 3.12, где нет проблем с кодировками модулей
+requirements = python3==3.12.3, hostpython3==3.12.3, kivy
 
 orientation = landscape
 fullscreen = 1
@@ -20,7 +20,6 @@ android.skip_update = False
 
 p4a.bootstrap = sdl2
 
-# Сбалансированный золотой стандарт мобильных версий Google под Java 11
 android.api = 33
 android.minapi = 21
 android.ndk = 25b
