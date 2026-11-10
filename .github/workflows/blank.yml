@@ -14,34 +14,29 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # ФИНАЛЬНАЯ ПОБЕДНАЯ СБОРКА: Генерируем цифровой ключ debug.keystore и прописываем его в Godot!
+      # ФИНАЛЬНАЯ ПОБЕДНАЯ СБОРКА: Подкладываем созданный нами файл настроек прямо в сердце Docker!
       - name: Export VR APK via Connected Container
         run: |
           mkdir -p output_apk
           
-          # Генерируем официальный отладочный ключ Android прямо в папке проекта
+          # 1. Генерируем цифровой отладочный ключ Android в корне проекта
           keytool -keyalg RSA -genkeypair -alias androiddebugkey -keypass android -keystore debug.keystore -storepass android -dname "CN=Android Debug,O=Android,C=US" -validity 10000
           
-          # Прописываем пути к SDK, Java и нашему новому цифровому ключу внутрь настроек Godot
-          mkdir -p ~/.config/godot
-          echo '[settings]' > ~/.config/godot/editor_settings-4.tres
-          echo 'export/android/android_sdk_path = "/android-sdk"' >> ~/.config/godot/editor_settings-4.tres
-          echo 'export/android/java_sdk_path = "/usr/lib/jvm/temurin-17-jdk-amd64"' >> ~/.config/godot/editor_settings-4.tres
-          echo 'export/android/debug_keystore = "/project/debug.keystore"' >> ~/.config/godot/editor_settings-4.tres
-          echo 'export/android/debug_username = "androiddebugkey"' >> ~/.config/godot/editor_settings-4.tres
-          echo 'export/android/debug_password = "android"' >> ~/.config/godot/editor_settings-4.tres
+          # 2. Создаем системную папку для конфигов, чтобы Docker её сразу увидел
+          mkdir -p .godot_config
+          cp editor_settings-4.tres .godot_config/
           
-          # Запускаем сборку! Передаем папки и файлы настроек внутрь контейнера Docker
+          # 3. ЗАПУСКАЕМ DOCKER: Монтируем наш созданный файл настроек прямо в системный корень /root/ контейнера!
           docker run \
             -e ANDROID_HOME=/android-sdk \
             -e JAVA_HOME=/usr/lib/jvm/temurin-17-jdk-amd64 \
             -v /usr/local/lib/android/sdk:/android-sdk \
             -v /usr/lib/jvm/temurin-17-jdk-amd64:/usr/lib/jvm/temurin-17-jdk-amd64 \
-            -v ~/.config/godot:/root/.config/godot \
+            -v $(pwd)/.godot_config:/root/.config/godot \
             -v $(pwd):/project -w /project \
             barichello/godot-ci:4.2.2 godot --headless --export-debug "Android" output_apk/app-vr-debug.apk
 
-      # Отдаем скомпилированный APK-файл игры с реальным весом в мегабайтах
+      # Отдаем скомпилированный APK-файл игры с реальным весом в мегабайтах!
       - name: Upload VR APK to GitHub Artifacts
         uses: actions/upload-artifact@v4
         with:
