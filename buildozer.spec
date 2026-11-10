@@ -8,8 +8,7 @@ version = 0.1
 
 source.exclude_patterns = **/test/**,**/tests/**,**/unittest/**
 
-# ИСПРАВЛЕНО: Убрали жёсткие цифры версий, чтобы не провоцировать ошибку 404
-requirements = python3, kivy
+requirements = python3, kivy, pyjnius==1.6.1
 
 orientation = landscape
 fullscreen = 1
@@ -23,10 +22,11 @@ p4a.bootstrap = sdl2
 # Наш защитный щит против сбоя grpmodule
 android.meta_data = p4a.no_grp=True
 
+# ИСПРАВЛЕНО: Выставили minapi = 24, чтобы Gradle успешно склеил APK!
 android.api = 33
-android.minapi = 21
+android.minapi = 24
 android.ndk = 25b
-android.ndk_api = 21
+android.ndk_api = 24
 
 [buildozer]
 log_level = 2
