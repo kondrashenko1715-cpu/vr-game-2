@@ -16,17 +16,18 @@ jobs:
 
       - name: Download Godot Engine
         run: |
+          # Скачиваем и правильно распаковываем сам движок Godot
           wget https://github.com
           unzip Godot_v4.2.2-stable_linux.x86_64.zip
           mv Godot_v4.2.2-stable_linux.x86_64 godot
           chmod +x godot
           
-          # ИСПРАВЛЕНО: Правильно распаковываем шаблоны .tpz через команду переименования в .zip!
+          # Скачиваем и распаковываем мобильные шаблоны
           mkdir -p ~/.local/share/godot/export_templates/4.2.2.stable
           wget https://github.com
           mv Godot_v4.2.2-stable_export_templates.tpz templates.zip
-          unzip templates.zip -d templates_extract
-          mv templates_extract/templates/* ~/.local/share/godot/export_templates/4.2.2.stable/
+          unzip templates.zip
+          mv templates/* ~/.local/share/godot/export_templates/4.2.2.stable/
 
       # ФИНАЛЬНАЯ СБОРКА НАШЕГО ОРАНЖЕВОГО 3D VR-КУБА С ИСПОЛЬЗОВАНИЕМ СИСТЕМНОГО SDK
       - name: Export VR APK
