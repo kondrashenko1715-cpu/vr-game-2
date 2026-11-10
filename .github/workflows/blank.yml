@@ -13,10 +13,11 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # ИСПРАВЛЕНО: Включаем стабильный Python 3.12 на сервере
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: '3.11'
+          python-version: '3.12'
 
       - name: Set up JDK 11
         uses: actions/setup-java@v4
@@ -37,20 +38,16 @@ jobs:
           export JAVA_HOME=$JAVA_HOME_11_X64
           export PATH=$JAVA_HOME/bin:$PATH
           
-          echo "============================================="
-          echo "🌐 ВКЛЮЧАЕМ МЕЖДУНАРОДНЫЙ СТАНДАРТ ТЕКСТА..."
-          echo "============================================="
-          
-          # ИСПРАВЛЕНО: Насильно заставляем Linux правильно читать значки евро € и любые символы UTF-8
           sudo locale-gen en_US.UTF-8
           export LANG=en_US.UTF-8
           export LANGUAGE=en_US:en
           export LC_ALL=en_US.UTF-8
           
+          # Тотально очищаем файлы перед стартом
           dos2unix main.py buildozer.spec || true
           
           echo "============================================="
-          echo "🚀 РОБОТ ЛЕОН ЗАПУСТИЛ ФИНАЛЬНУЮ СБОРКУ ДЛЯ PICO 4!"
+          echo "🚀 РОБОТ ЛЕОН ЗАПУСТИЛ ФИНАЛЬНУЮ СБОРКУ НА PYTHON 3.12!"
           echo "============================================="
           
           set +e
