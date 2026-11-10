@@ -29,8 +29,8 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y git zip unzip openjdk-11-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libffi-dev libltdl-dev dos2unix locales
           pip install --upgrade pip
-          # ИСПРАВЛЕНО: Разрешаем установить новейший python-for-android, который идеально умеет собирать Python 3.12!
-          pip install --upgrade buildozer cython python-for-android
+          # ИСПРАВЛЕНО: Устанавливаем эталонную стабильную версию сборщика 2024 года под Python 3.12
+          pip install buildozer==1.5.0 cython==3.0.10 python-for-android==2024.6.2
 
       - name: Build Finished APK
         run: |
@@ -46,7 +46,7 @@ jobs:
           dos2unix main.py buildozer.spec || true
           
           echo "============================================="
-          echo "🚀 РОБОТ ЛЕОН ЗАПУСТИЛ ФИНАЛЬНУЮ СБОРКУ НА PYTHON 3.12..."
+          echo "🚀 РОБОТ ЛЕОН ЗАПУСТИЛ СТАБИЛЬНУЮ СБОРКУ НА PYTHON 3.12..."
           echo "============================================="
           
           set +e
