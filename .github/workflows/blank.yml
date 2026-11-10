@@ -9,18 +9,17 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # ПОБЕДНЫЙ ШАГ: Официальный робот-компилятор Godot под Android и OpenXR
+      # ИСПРАВЛЕНО: Обновили версию компилятора и исправили имена всех параметров под стандарты GitHub!
       - name: Godot Android Export
-        uses: firebelley/godot-export@v5.2.0
+        uses: firebelley/godot-export@v6.0.0
         with:
-          godot_executable_download_url: https://github.com
-          export_preset_name: Android
-          project_path: .
-          # Принудительно включаем мобильный OpenXR драйвер для Pico 4
-          export_mode: release
+          godot_version: '4.2.2'
+          export_preset: 'Android'
+          project_dir: '.'
+          is_release: false
 
       - name: Upload VR APK to GitHub Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: godot-space-vr-apk
-          path: /home/runner/.local/share/godot/export/
+          path: .godot/export/
