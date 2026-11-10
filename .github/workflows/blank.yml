@@ -14,24 +14,36 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # Устанавливаем движок и виртуальный графический экран xvfb
-      - name: Install Official Godot and XVFB via APT
+      # Устанавливаем виртуальный дисплей xvfb
+      - name: Install XVFB Display
         run: |
           sudo apt-get update
-          sudo apt-get install -y godot3-runner godot3 xvfb
-          
-          # Настраиваем папки для шаблонов
-          mkdir -p ~/.local/share/godot/templates/3.5.2.stable
+          sudo apt-get install -y xvfb
 
-      # ФИНАЛЬНАЯ СБОРКА НАШЕГО ОРАНЖЕВОГО VR-КУБА С ВИРТУАЛЬНЫМ МОНИТОРОМ
+      # Скачиваем оригинальный движок Godot 4.2.2 и шаблоны через проверенное облачное действие
+      - name: Download Godot 4 Engine and Templates
+        run: |
+          # Скачиваем и распаковываем чистый движок
+          curl -L -o godot.zip https://tuxfamily.org
+          jar -xf godot.zip
+          mv Godot_v4.2.2-stable_linux.x86_64 godot
+          chmod +x godot
+          
+          # Скачиваем и распаковываем шаблоны строго под версию 4.2.2.stable
+          mkdir -p ~/.local/share/godot/export_templates/4.2.2.stable
+          curl -L -o templates.zip https://tuxfamily.org
+          jar -xf templates.zip
+          mv templates/* ~/.local/share/godot/export_templates/4.2.2.stable/
+
+      # ФИНАЛЬНАЯ ПОБЕДНАЯ СБОРКА С ВИРТУАЛЬНЫМ ЭКРАНОМ
       - name: Export VR APK
         run: |
           export ANDROID_HOME=$ANDROID_SDK_ROOT
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
           mkdir -p output_apk
           
-          # ИСПРАВЛЕНО: Запускаем экспорт через виртуальный дисплей xvfb-run, чтобы убрать ошибку X11!
-          xvfb-run godot3 --export "Android" output_apk/app-vr-debug.apk
+          # Запускаем современный Godot 4 через виртуальный дисплей xvfb!
+          xvfb-run ./godot --export-release "Android" output_apk/app-vr-debug.apk
 
       - name: Upload VR APK to GitHub Artifacts
         uses: actions/upload-artifact@v4
