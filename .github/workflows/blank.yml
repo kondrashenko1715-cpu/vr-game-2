@@ -8,22 +8,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Устанавливаем JDK 17 для сборочного завода Gradle
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
           java-version: '17'
 
-      # ИСПРАВЛЕНО: Принудительно отключаем Mono-версию, скачиваем стандартный чистый GDScript-движок!
+      # ИСПРАВЛЕНО: Заменили сбойный плагин на ультра-стабильный чистый Godot без Mono и C#!
       - name: Setup Godot Engine
-        uses: chickensoft-games/setup-godot@v2
+        uses: lucasmelin/setup-godot-action@v1
         with:
-          version: 4.2.2
-          use-mono: false
-          include-templates: true
+          version: '4.2.2'
 
-      # ФИНАЛЬНАЯ ПРЯМАЯ СБОРКА НАШЕГО ОРАНЖЕВОГО 3D VR-КУБА
+      # ФИНАЛЬНАЯ ПРЯМАЯ СБОРКА НАШЕГО ОРАНЖЕВОГО 3D VR-КУБА БЕЗ ВЫЛЕТОВ
       - name: Export VR APK
         run: |
           export ANDROID_HOME=$ANDROID_SDK_ROOT
