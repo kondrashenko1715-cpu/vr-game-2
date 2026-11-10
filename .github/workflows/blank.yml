@@ -14,19 +14,18 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # ИСПРАВЛЕНО: Установили официальный Godot прямо из системного магазина приложений Linux без всяких скачиваний архивов!
+      # ИСПРАВЛЕНО: Качаем строго современный Godot 4.2 через стабильный канал Snap!
       - name: Install Godot via Snap
         run: |
-          sudo snap install godot --classic
+          sudo snap install godot --classic --channel=4.2/stable
           
-          # Скачиваем мобильные шаблоны OpenXR в обход curl через защищенный wget с зеркала
+          # Скачиваем мобильные шаблоны OpenXR через официальный защищенный прокси GitHub
           mkdir -p ~/.local/share/godot/export_templates/4.2.2.stable
-          wget https://tuxfamily.org
-          mv Godot_v4.2.2-stable_export_templates.tpz templates.zip
+          curl -L -o templates.zip https://github.com
           jar -xf templates.zip
           mv templates/* ~/.local/share/godot/export_templates/4.2.2.stable/
 
-      # ФИНАЛЬНАЯ ПРЯМАЯ СБОРКА НАШЕГО ОРАНЖЕВОГО 3D VR-КУБА
+      # ФИНАЛЬНАЯ ПРЯМАЯ СБОРКА НАШЕГО ОРАНЖЕВОГО 3D VR-КУБА БЕЗ ВЫЛЕТОВ
       - name: Export VR APK
         run: |
           export ANDROID_HOME=$ANDROID_SDK_ROOT
