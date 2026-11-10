@@ -14,22 +14,31 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
+      # УСТАНАВЛИВАЕМ МОЩНЫЙ 7-ZIP НА СЕРВЕР ЗА ПАРУ СЕКУНД
+      - name: Install 7-Zip Extra Tool
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y p7zip-full
+
       - name: Download Godot Engine
         run: |
-          # ИСПРАВЛЕНО: Убрали случайное двойное расширение .zip.zip из команды!
+          # Скачиваем официальный движок Godot
           wget https://github.com
-          unzip Godot_v4.2.2-stable_linux.x86_64.zip
+          
+          # ИСПРАВЛЕНО: Заменили капризный unzip на мощную команду 7z!
+          7z x Godot_v4.2.2-stable_linux.x86_64.zip
           mv Godot_v4.2.2-stable_linux.x86_64 godot
           chmod +x godot
           
-          # Скачиваем и распаковываем мобильные шаблоны
+          # Скачиваем и распаковываем мобильные шаблоны OpenXR
           mkdir -p ~/.local/share/godot/export_templates/4.2.2.stable
           wget https://github.com
-          mv Godot_v4.2.2-stable_export_templates.tpz templates.zip
-          unzip templates.zip
+          
+          # С помощью 7z распаковываем фирменный файл .tpz напрямую без переименований!
+          7z x Godot_v4.2.2-stable_export_templates.tpz
           mv templates/* ~/.local/share/godot/export_templates/4.2.2.stable/
 
-      # ФИНАЛЬНАЯ СБОРКА НАШЕГО ОРАНЖЕВОГО 3D VR-КУБА С ИСПОЛЬЗОВАНИЕМ СИСТЕМНОГО SDK
+      # ФИНАЛЬНАЯ СБОРКА НАШЕГО ОРАНЖЕВОГО 3D VR-КУБА
       - name: Export VR APK
         run: |
           export ANDROID_HOME=$ANDROID_SDK_ROOT
