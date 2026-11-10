@@ -14,22 +14,24 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # ИСПРАВЛЕНО: Ставим чистый Godot 4 напрямую из официального системного репозитория Linux без скачивания битых zip-файлов!
-      - name: Install Official Godot via APT
+      # Устанавливаем движок и виртуальный графический экран xvfb
+      - name: Install Official Godot and XVFB via APT
         run: |
           sudo apt-get update
-          sudo apt-get install -y godot3-runner godot3
+          sudo apt-get install -y godot3-runner godot3 xvfb
           
-          # Создаем пустую заглушку для шаблонов, так как системный Godot умеет собирать базовый Android напрямую!
-          mkdir -p ~/.local/share/godot/export_templates/4.2.2.stable
+          # Настраиваем папки для шаблонов
+          mkdir -p ~/.local/share/godot/templates/3.5.2.stable
 
-      # ФИНАЛЬНАЯ ПРЯМАЯ СБОРКА НАШЕГО ОРАНЖЕВОГО 3D VR-КУБА БЕЗ СЕТЕВЫХ СБОЕВ
+      # ФИНАЛЬНАЯ СБОРКА НАШЕГО ОРАНЖЕВОГО VR-КУБА С ВИРТУАЛЬНЫМ МОНИТОРОМ
       - name: Export VR APK
         run: |
           export ANDROID_HOME=$ANDROID_SDK_ROOT
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
           mkdir -p output_apk
-          godot3 --headless --export-release "Android" output_apk/app-vr-debug.apk
+          
+          # ИСПРАВЛЕНО: Запускаем экспорт через виртуальный дисплей xvfb-run, чтобы убрать ошибку X11!
+          xvfb-run godot3 --export "Android" output_apk/app-vr-debug.apk
 
       - name: Upload VR APK to GitHub Artifacts
         uses: actions/upload-artifact@v4
