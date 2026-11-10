@@ -42,21 +42,27 @@ jobs:
           export LANGUAGE=en_US:en
           export LC_ALL=en_US.UTF-8
           
-          # Автоматически чистим кэш прошлых сбойных запусков 3.13
+          # Очищаем папки
           rm -rf ~/.buildozer
           rm -rf .buildozer
           
           dos2unix main.py buildozer.spec || true
           
           echo "============================================="
-          echo "🚀 РОБОТ ЛЕОН ЗАПУСТИЛ АВТОНОМНУЮ СБОРКУ ИГРЫ..."
+          echo "🚀 ХАК РОБОТА: НАМЕРТВО ВШИВАЕМ PYJNIUS 1.8.0..."
+          echo "============================================="
+          
+          # ЖЕСТКОЕ ИСПРАВЛЕНИЕ: Прямо на сервере принудительно заменяем требования на рабочую версию 1.8.0
+          sed -i 's/requirements =.*/requirements = python3, kivy, pyjnius==1.8.0/g' buildozer.spec
+          
+          echo "============================================="
+          echo "🚀 РОБОТ ЛЕОН ЗАПУСТИЛ ОБНОВЛЕННУЮ СБОРКУ ИГРЫ..."
           echo "============================================="
           
           set +e
           export PYTHONDONTWRITEBYTECODE=1
           export PYTHONIOENCODING=utf-8
           
-          # Наш красивый чистый фильтр логов "по одному слову"
           buildozer android debug 2>&1 | tee build_raw.log | grep --line-buffered -E "Building|Compiling target|Package|Applying patch|# |Installing|ERROR|Exception|failed" | sed -u -E '
             s/.*Building ([a-zA-Z0-9_#-]+).*/🔨 Собираем: \1.../
             s/.*Compiling target ([a-zA-Z0-9_#-]+).*/⚙️ Компилируем: \1.../
