@@ -10,19 +10,21 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # ФИНАЛЬНАЯ ПОБЕДНАЯ СБОРКА: Передаем точные системные пути Android SDK прямо внутрь настроек Godot!
+      # ФИНАЛЬНАЯ СБОРКА: Копируем шаблоны в системный корень /root/ и собираем через флаг отладки!
       - name: Export VR APK
         run: |
           mkdir -p output_apk
           
-          # Жестко прописываем пути для Android SDK внутри конфигурации Godot редактора
-          mkdir -p ~/.config/godot
-          echo '[settings]' > ~/.config/godot/editor_settings-4.tres
-          echo 'export/android/android_sdk_path = "/usr/local/lib/android/sdk"' >> ~/.config/godot/editor_settings-4.tres
-          echo 'export/android/shutdown_adb_on_exit = true' >> ~/.config/godot/editor_settings-4.tres
+          # Создаем точную папку шаблонов в корне суперпользователя контейнера /root/
+          mkdir -p /root/.local/share/godot/export_templates/4.2.2.stable
           
-          # Запускаем экспорт через встроенный Godot 4 со всеми правами доступа
-          godot --headless --export-release "Android" output_apk/app-vr-debug.apk
+          # Скачиваем и распаковываем официальные мобильные шаблоны OpenXR прямо туда через стабильный Python
+          curl -L -o templates.zip https://github.com
+          python3 -c "import zipfile; zipfile.ZipFile('templates.zip').extractall('t_out')"
+          mv t_out/templates/* /root/.local/share/godot/export_templates/4.2.2.stable/
+          
+          # ЗАПУСКАЕМ СБОРКУ ЧЕРЕЗ ФЛАГ DEBUG, КОТОРЫЙ ИГНОРИРУЕТ ПУТИ JAVA SDK!
+          godot --headless --export-debug "Android" output_apk/app-vr-debug.apk
 
       # Отдаем скомпилированный APK-файл игры с реальным весом в мегабайтах
       - name: Upload VR APK to GitHub Artifacts
