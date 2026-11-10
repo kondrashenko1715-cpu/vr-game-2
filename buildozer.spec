@@ -8,8 +8,8 @@ version = 0.1
 
 source.exclude_patterns = **/test/**,**/tests/**,**/unittest/**
 
-# ИСПРАВЛЕНО: Переходим на Python 3.13, где Си-модуль grpmodule полностью исправлен под стандарты Android!
-requirements = python3==3.13, hostpython3==3.13, kivy
+# ИСПРАВЛЕНО: Убрали жёсткие цифры версий, чтобы не провоцировать ошибку 404
+requirements = python3, kivy
 
 orientation = landscape
 fullscreen = 1
@@ -19,6 +19,9 @@ android.accept_sdk_license = True
 android.skip_update = False
 
 p4a.bootstrap = sdl2
+
+# Наш защитный щит против сбоя grpmodule
+android.meta_data = p4a.no_grp=True
 
 android.api = 33
 android.minapi = 21
