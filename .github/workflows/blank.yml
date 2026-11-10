@@ -24,11 +24,10 @@ jobs:
           distribution: 'temurin'
           java-version: '11'
 
-      # Ставим утилиту dos2unix для тотальной очистки файлов
       - name: Install Buildozer Dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install -y git zip unzip openjdk-11-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libffi-dev libltdl-dev dos2unix
+          sudo apt-get install -y git zip unzip openjdk-11-jdk autoconf libtool pkg-config zlib1g-dev libncurses5-dev libssl-dev cmake libffi-dev libltdl-dev dos2unix locales
           pip install --upgrade pip
           pip install buildozer cython==0.29.36 python-for-android==2024.1.21
 
@@ -39,14 +38,16 @@ jobs:
           export PATH=$JAVA_HOME/bin:$PATH
           
           echo "============================================="
-          echo "🚀 ВЫЖИГАЕМ СБОЙНЫЙ БАЙТ 0xF6 ИЗ ВСЕХ ФАЙЛОВ..."
+          echo "🌐 ВКЛЮЧАЕМ МЕЖДУНАРОДНЫЙ СТАНДАРТ ТЕКСТА..."
           echo "============================================="
           
-          # Насильно очищаем main.py от виндовс-кодировок и скрытых символов
-          dos2unix main.py buildozer.spec || true
+          # ИСПРАВЛЕНО: Насильно заставляем Linux правильно читать значки евро € и любые символы UTF-8
+          sudo locale-gen en_US.UTF-8
+          export LANG=en_US.UTF-8
+          export LANGUAGE=en_US:en
+          export LC_ALL=en_US.UTF-8
           
-          # Заменяем возможные скрытые байты 0xf6 на безопасные символы пустоты
-          sed -i 's/\xf6//g' main.py || true
+          dos2unix main.py buildozer.spec || true
           
           echo "============================================="
           echo "🚀 РОБОТ ЛЕОН ЗАПУСТИЛ ФИНАЛЬНУЮ СБОРКУ ДЛЯ PICO 4!"
