@@ -8,7 +8,7 @@ version = 0.1
 
 source.exclude_patterns = **/test/**,**/tests/**,**/unittest/**
 
-# ИСПРАВЛЕНО: Держим жесткий стабильный Python 3.11, а модули Kivy и Android отдаем на автоподбор сборщику!
+# Жестко фиксируем стабильную базу, а дополнительные модули тулчейн подберет сам
 requirements = python3==3.11.11, hostpython3==3.11.11, kivy, android, pyjnius
 
 orientation = landscape
@@ -23,7 +23,7 @@ p4a.bootstrap = sdl2
 # Наш защитный щит против сбоя grpmodule
 android.meta_data = p4a.no_grp=True
 
-# Идеальный баланс под Gradle
+# Идеальный баланс API под требования Gradle
 android.api = 33
 android.minapi = 24
 android.ndk = 25b
