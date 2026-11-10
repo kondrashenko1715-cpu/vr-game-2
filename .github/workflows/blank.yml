@@ -14,19 +14,26 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # ИСПРАВЛЕНО: Полностью убрали капризное скачивание шаблонов через интернет и запустили сборку на встроенных файлах!
+      # ФИНАЛЬНАЯ ПОБЕДНАЯ СБОРКА: Передаем пути SDK и JDK прямо внутрь Docker через флаги -e!
       - name: Export VR APK via Connected Container
         run: |
           mkdir -p output_apk
           
-          # Настраиваем локальный паспорт путей Android SDK для Godot
-          mkdir -p .godot/editor
+          # Настраиваем конфигурационный файл путей внутри проекта
           mkdir -p ~/.config/godot
           echo '[settings]' > ~/.config/godot/editor_settings-4.tres
           echo 'export/android/android_sdk_path = "/android-sdk"' >> ~/.config/godot/editor_settings-4.tres
+          echo 'export/android/java_sdk_path = "/usr/lib/jvm/temurin-17-jdk-amd64"' >> ~/.config/godot/editor_settings-4.tres
           
-          # Исправлено: Заменили ошибочный флаг --v на правильный -v и запустили Godot на встроенных шаблонах контейнера!
-          docker run -v /usr/local/lib/android/sdk:/android-sdk -v $(pwd):/project -w /project barichello/godot-ci:4.2.2 godot --headless --export-debug "Android" output_apk/app-vr-debug.apk
+          # ЗАПУСКАЕМ DOCKER С ПРЯМОЙ ПЕРЕДАЧЕЙ ВСЕХ СИСТЕМНЫХ ПЕРЕМЕННЫХ И ПАПОК НАСТРОЕК!
+          docker run \
+            -e ANDROID_HOME=/android-sdk \
+            -e JAVA_HOME=/usr/lib/jvm/temurin-17-jdk-amd64 \
+            -v /usr/local/lib/android/sdk:/android-sdk \
+            -v /usr/lib/jvm/temurin-17-jdk-amd64:/usr/lib/jvm/temurin-17-jdk-amd64 \
+            -v ~/.config/godot:/root/.config/godot \
+            -v $(pwd):/project -w /project \
+            barichello/godot-ci:4.2.2 godot --headless --export-debug "Android" output_apk/app-vr-debug.apk
 
       # Отдаем скомпилированный APK-файл игры с реальным весом в мегабайтах
       - name: Upload VR APK to GitHub Artifacts
