@@ -20,18 +20,18 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y xvfb
 
-      # Скачиваем оригинальный движок Godot 4.2.2 и шаблоны через проверенное облачное действие
+      # ИСПРАВЛЕНО: Перевели скачивание на официальные, защищенные серверы самого GitHub релизов!
       - name: Download Godot 4 Engine and Templates
         run: |
           # Скачиваем и распаковываем чистый движок
-          curl -L -o godot.zip https://tuxfamily.org
+          curl -L -o godot.zip https://github.com
           jar -xf godot.zip
           mv Godot_v4.2.2-stable_linux.x86_64 godot
           chmod +x godot
           
-          # Скачиваем и распаковываем шаблоны строго под версию 4.2.2.stable
+          # Скачиваем и распаковываем шаблоны через внутреннее облако GitHub
           mkdir -p ~/.local/share/godot/export_templates/4.2.2.stable
-          curl -L -o templates.zip https://tuxfamily.org
+          curl -L -o templates.zip https://github.com
           jar -xf templates.zip
           mv templates/* ~/.local/share/godot/export_templates/4.2.2.stable/
 
@@ -42,7 +42,7 @@ jobs:
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
           mkdir -p output_apk
           
-          # Запускаем современный Godot 4 через виртуальный дисплей xvfb!
+          # Запускаем современный Godot 4 через виртуальный дисплей xvfb
           xvfb-run ./godot --export-release "Android" output_apk/app-vr-debug.apk
 
       - name: Upload VR APK to GitHub Artifacts
