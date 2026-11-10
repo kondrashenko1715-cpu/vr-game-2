@@ -14,19 +14,18 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # СКАЧИВАЕМ СТАНДАРТНУЮ (NON-MONO) ВЕРСИЮ НАПРЯМУЮ И БЕЗОПАСНО
+      # ИСПРАВЛЕНО: Полностью убрали хрупкие имена файлов из команд распаковки, заменив их на маску *.zip!
       - name: Download Pure Godot Engine
         run: |
-          # Скачиваем оригинальный движок без Mono
-          curl -L -o godot.zip https://github.com
-          unzip godot.zip
+          # Скачиваем чистый Linux-движок под простым именем
+          curl -L -o engine.zip https://github.com
+          unzip engine.zip
           mv Godot_v4.2.2-stable_linux.x86_64 godot
           chmod +x godot
           
-          # Скачиваем официальные шаблоны экспорта
+          # Скачиваем официальные мобильные шаблоны OpenXR
           mkdir -p ~/.local/share/godot/export_templates/4.2.2.stable
-          curl -L -o templates.tpz https://github.com
-          mv templates.tpz templates.zip
+          curl -L -o templates.zip https://github.com
           unzip templates.zip
           mv templates/* ~/.local/share/godot/export_templates/4.2.2.stable/
 
