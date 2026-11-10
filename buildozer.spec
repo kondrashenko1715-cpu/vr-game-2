@@ -1,14 +1,15 @@
 [app]
-title = PicoPythonGame
-package.name = picopythongame
-package.domain = com.vrgame.cube
+title = MyPico3DCube
+# ИСПРАВЛЕНО: Дали игре абсолютно уникальное имя, чтобы шлем не путал её с другими приложениями!
+package.name = mypico3dcube
+package.domain = com.pico.developer
+
 source.dir = .
 source.include_exts = py,png,jpg,kv,atlas
-version = 0.1
+version = 1.0
 
 source.exclude_patterns = **/test/**,**/tests/**,**/unittest/**
 
-# Жестко фиксируем стабильную базу, а дополнительные модули тулчейн подберет сам
 requirements = python3==3.11.11, hostpython3==3.11.11, kivy, android, pyjnius
 
 orientation = landscape
@@ -23,7 +24,7 @@ p4a.bootstrap = sdl2
 # Наш защитный щит против сбоя grpmodule
 android.meta_data = p4a.no_grp=True
 
-# Идеальный баланс API под требования Gradle
+# Стабильные лимиты под Gradle
 android.api = 33
 android.minapi = 24
 android.ndk = 25b
