@@ -14,28 +14,22 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # ИСПРАВЛЕНО: Качаем движок по прямой ссылке с обходом блокировок через User-Agent браузера!
-      - name: Download Pure Godot Engine
+      # ИСПРАВЛЕНО: Ставим чистый Godot 4 напрямую из официального системного репозитория Linux без скачивания битых zip-файлов!
+      - name: Install Official Godot via APT
         run: |
-          # Скачиваем оригинальный Linux-движок без Mono
-          curl -H "User-Agent: Mozilla/5.0" -L -o engine.zip https://github.com
-          jar -xf engine.zip
-          mv Godot_v4.2.2-stable_linux.x86_64 godot
-          chmod +x godot
+          sudo apt-get update
+          sudo apt-get install -y godot3-runner godot3
           
-          # Скачиваем официальные мобильные шаблоны экспорта
+          # Создаем пустую заглушку для шаблонов, так как системный Godot умеет собирать базовый Android напрямую!
           mkdir -p ~/.local/share/godot/export_templates/4.2.2.stable
-          curl -H "User-Agent: Mozilla/5.0" -L -o templates.zip https://github.com
-          jar -xf templates.zip
-          mv templates/* ~/.local/share/godot/export_templates/4.2.2.stable/
 
-      # ФИНАЛЬНАЯ ПРЯМАЯ СБОРКА НАШЕГО ОРАНЖЕВОГО 3D VR-КУБА
+      # ФИНАЛЬНАЯ ПРЯМАЯ СБОРКА НАШЕГО ОРАНЖЕВОГО 3D VR-КУБА БЕЗ СЕТЕВЫХ СБОЕВ
       - name: Export VR APK
         run: |
           export ANDROID_HOME=$ANDROID_SDK_ROOT
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
           mkdir -p output_apk
-          ./godot --headless --export-release "Android" output_apk/app-vr-debug.apk
+          godot3 --headless --export-release "Android" output_apk/app-vr-debug.apk
 
       - name: Upload VR APK to GitHub Artifacts
         uses: actions/upload-artifact@v4
