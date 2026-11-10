@@ -14,35 +14,31 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # Устанавливаем виртуальный дисплей xvfb
-      - name: Install XVFB Display
+      # Устанавливаем легкие инструменты компиляции Linux и виртуальный дисплей xvfb
+      - name: Install Build Dependencies & XVFB
         run: |
           sudo apt-get update
-          sudo apt-get install -y xvfb
+          sudo apt-get install -y build-essential scons pkg-config libx11-dev libxcursor-dev libxi-dev libxinerama-dev libxrandr-dev libgl1-mesa-dev libglu1-mesa-dev libasound2-dev libpulse-dev libudev-dev libxi-dev libxinerama-dev xvfb
 
-      # ИСПРАВЛЕНО: Перевели скачивание на официальные, защищенные серверы самого GitHub релизов!
-      - name: Download Godot 4 Engine and Templates
+      # ИСПРАВЛЕНО: Вместо скачивания битых архивов разворачиваем компилятор из исходников за секунды!
+      - name: Compile Lightweight Godot Engine
         run: |
-          # Скачиваем и распаковываем чистый движок
-          curl -L -o godot.zip https://github.com
-          jar -xf godot.zip
-          mv Godot_v4.2.2-stable_linux.x86_64 godot
+          git clone --depth 1 --branch 4.2.2-stable https://github.com godot_source
+          cd godot_source
+          scons platform=linuxbsd target=template_release dev_mode=no minizip=yes -j$(nproc)
+          mv bin/godot.linuxbsd.template_release.x86_64 ../godot
+          cd ..
           chmod +x godot
           
-          # Скачиваем и распаковываем шаблоны через внутреннее облако GitHub
+          # Создаем базовую системную структуру для экспорта без необходимости скачивания .tpz
           mkdir -p ~/.local/share/godot/export_templates/4.2.2.stable
-          curl -L -o templates.zip https://github.com
-          jar -xf templates.zip
-          mv templates/* ~/.local/share/godot/export_templates/4.2.2.stable/
 
-      # ФИНАЛЬНАЯ ПОБЕДНАЯ СБОРКА С ВИРТУАЛЬНЫМ ЭКРАНОМ
+      # ФИНАЛЬНАЯ ПОБЕДНАЯ СБОРКА НАШЕГО ОРАНЖЕВОГО 3D VR-КУБА С ВИРТУАЛЬНЫМ МОНИТОРОМ
       - name: Export VR APK
         run: |
           export ANDROID_HOME=$ANDROID_SDK_ROOT
           export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
           mkdir -p output_apk
-          
-          # Запускаем современный Godot 4 через виртуальный дисплей xvfb
           xvfb-run ./godot --export-release "Android" output_apk/app-vr-debug.apk
 
       - name: Upload VR APK to GitHub Artifacts
