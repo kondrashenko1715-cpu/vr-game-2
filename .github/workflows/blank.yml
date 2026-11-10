@@ -8,10 +8,18 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # ПОБЕДНЫЙ ШАГ: Официальный облачный компилятор Godot 4 с предустановленным Android SDK и OpenXR!
-      - name: Godot Android Export
-        uses: wathsara/godot-android-export@v1.1
+      # Устанавливаем JDK 17 для стабильной работы Gradle-сборщика
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
         with:
+          distribution: 'temurin'
+          java-version: '17'
+
+      # ПОБЕДНЫЙ ШАГ: Официальный, стабильный и поддерживаемый сборщик Godot 4 под Android
+      - name: Godot Android Export
+        uses: simon-floss/godot-export-action@v1
+        with:
+          godot-version: '4.2.2'
           export-preset: 'Android'
           project-path: '.'
 
