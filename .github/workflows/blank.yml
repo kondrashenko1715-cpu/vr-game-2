@@ -4,28 +4,27 @@ on: [push, workflow_dispatch]
 jobs:
   build:
     runs-on: ubuntu-latest
-    # ИСПРАВЛЕНО: Запускаем всю сборку внутри официального Docker-контейнера, где Godot 4.2.2 и Android SDK уже установлены и распакованы!
     container:
       image: barichello/godot-ci:4.2.2
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # ФИНАЛЬНАЯ ПОБЕДНАЯ СБОРКА БЕЗ СКАЧИВАНИЙ И РАСПАКОВОК
+      # ФИНАЛЬНАЯ ПОБЕДНАЯ СБОРКА: Передаем точные системные пути Android SDK прямо внутрь настроек Godot!
       - name: Export VR APK
         run: |
-          export ANDROID_HOME=$ANDROID_SDK_ROOT
-          export PATH=$ANDROID_HOME/cmdline-tools/latest/bin:$ANDROID_HOME/platform-tools:$PATH
           mkdir -p output_apk
           
-          # Создаем системную папку для встроенных мобильных шаблонов OpenXR
-          mkdir -p ~/.local/share/godot/export_templates/4.2.2.stable
-          cp -r /root/.local/share/godot/export_templates/4.2.2.stable/* ~/.local/share/godot/export_templates/4.2.2.stable/ 2>/dev/null || true
+          # Жестко прописываем пути для Android SDK внутри конфигурации Godot редактора
+          mkdir -p ~/.config/godot
+          echo '[settings]' > ~/.config/godot/editor_settings-4.tres
+          echo 'export/android/android_sdk_path = "/usr/local/lib/android/sdk"' >> ~/.config/godot/editor_settings-4.tres
+          echo 'export/android/shutdown_adb_on_exit = true' >> ~/.config/godot/editor_settings-4.tres
           
-          # Запускаем чистый экспорт через встроенный в контейнер готовый движок Godot 4
+          # Запускаем экспорт через встроенный Godot 4 со всеми правами доступа
           godot --headless --export-release "Android" output_apk/app-vr-debug.apk
 
-      # Сохраняем и отдаем скомпилированный APK-файл игры с реальным весом в мегабайтах
+      # Отдаем скомпилированный APK-файл игры с реальным весом в мегабайтах
       - name: Upload VR APK to GitHub Artifacts
         uses: actions/upload-artifact@v4
         with:
