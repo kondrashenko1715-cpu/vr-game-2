@@ -8,8 +8,8 @@ version = 0.1
 
 source.exclude_patterns = **/test/**,**/tests/**,**/unittest/**
 
-# Жестко фиксируем эталонные стабильные версии мобильных библиотек
-requirements = python3==3.11.11, hostpython3==3.11.11, kivy==2.3.0, android==3.4.0, pyjnius==1.8.0
+# ИСПРАВЛЕНО: Держим жесткий стабильный Python 3.11, а модули Kivy и Android отдаем на автоподбор сборщику!
+requirements = python3==3.11.11, hostpython3==3.11.11, kivy, android, pyjnius
 
 orientation = landscape
 fullscreen = 1
@@ -20,10 +20,10 @@ android.skip_update = False
 
 p4a.bootstrap = sdl2
 
-# Наш секретный щит против сбоя grpmodule
+# Наш защитный щит против сбоя grpmodule
 android.meta_data = p4a.no_grp=True
 
-# Идеальный баланс API под требования Gradle
+# Идеальный баланс под Gradle
 android.api = 33
 android.minapi = 24
 android.ndk = 25b
