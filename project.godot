@@ -4,12 +4,7 @@ config_version=5
 
 config/name="PicoVR_Space"
 run/main_scene="res://node_3d.tscn"
-config/features=PackedStringArray("4.2", "Forward Plus")
-
-[xr]
-
-openxr/enabled=true
-shaders/enabled=true
+config/features=PackedStringArray("4.2", "GL Compatibility")
 
 [rendering]
 
