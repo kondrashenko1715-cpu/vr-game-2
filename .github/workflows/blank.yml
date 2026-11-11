@@ -26,10 +26,15 @@ jobs:
           set -e
           mkdir -p output_apk
           
-          # Генерируем отладочный ключ подписи
+          # 1. Находим точные пути к скачанным Android-шаблонам
+          DEBUG_TEMPLATE=$(find ~/.local/share/godot -name "android_debug.apk" | head -n 1)
+          RELEASE_TEMPLATE=$(find ~/.local/share/godot -name "android_release.apk" | head -n 1)
+          echo "Найден шаблон Debug: $DEBUG_TEMPLATE"
+          
+          # 2. Генерируем отладочный ключ подписи
           keytool -keyalg RSA -genkeypair -alias androiddebugkey -keypass android -keystore debug.keystore -storepass android -dname "CN=Android Debug,O=Android,C=US" -validity 10000
           
-          # Записываем пути к SDK, Java и ключу в настройки Godot 4
+          # 3. Записываем пути в настройки редактора Godot 4
           mkdir -p ~/.config/godot
           cat << EOF > ~/.config/godot/editor_settings-4.tres
           [gd_resource type="EditorSettings" format=3]
@@ -42,12 +47,47 @@ jobs:
           export/android/debug_keystore_pass = "android"
           EOF
 
-          # Импортируем ресурсы и собираем APK напрямую в корень проекта
+          # 4. Генерируем идеальный export_presets.cfg автоматически с точными системными путями
+          cat << EOF > export_presets.cfg
+          [preset.0]
+
+          name="Android"
+          platform="Android"
+          runnable=true
+          dedicated_server=false
+          custom_features=""
+          export_filter="all_resources"
+          include_filter=""
+          exclude_filter=""
+          export_path="output_apk/app-vr-debug.apk"
+
+          [preset.0.options]
+
+          custom_template/debug="$DEBUG_TEMPLATE"
+          custom_template/release="$RELEASE_TEMPLATE"
+          gradle_build/use_gradle_build=false
+          gradle_build/export_format=0
+          architectures/armeabi-v7a=false
+          architectures/arm64-v8a=true
+          architectures/x86=false
+          architectures/x86_64=false
+          keystore/debug="$PWD/debug.keystore"
+          keystore/debug_user="androiddebugkey"
+          keystore/debug_password="android"
+          keystore/release=""
+          keystore/release_user=""
+          keystore/release_password=""
+          version/code=1
+          version/name="1.0.0"
+          package/unique_name="com.kondrashenko.picovrspace"
+          package/name="PicoVR Space"
+          package/signed=true
+          xr_features/xr_mode=0
+          EOF
+
+          # 5. Импортируем проект и запускаем экспорт
           godot --headless --import
-          godot --headless --verbose --export-debug "Android" app-vr-debug.apk
-          
-          # Перемещаем готовый файл в папку для выгрузки и проверяем его размер
-          mv app-vr-debug.apk output_apk/app-vr-debug.apk
+          godot --headless --verbose --export-debug "Android" output_apk/app-vr-debug.apk
           test -s output_apk/app-vr-debug.apk
 
       - name: Upload VR APK to GitHub Artifacts
