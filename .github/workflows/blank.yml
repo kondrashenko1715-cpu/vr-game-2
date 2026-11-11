@@ -19,22 +19,28 @@ jobs:
         with:
           version: 4.2.2
           use-dotnet: false
-          include-templates: true
+          include-templates: false
 
-      - name: Configure and Export Android APK
+      - name: Download Android Templates and Export APK
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           set -e
           mkdir -p output_apk
-          
-          # 1. Находим реальные шаблоны и гарантированно копируем их в папку с точным именем 4.2.2.stable
           mkdir -p ~/.local/share/godot/export_templates/4.2.2.stable
-          find ~/.local/share/godot/export_templates -type f -exec cp -n {} ~/.local/share/godot/export_templates/4.2.2.stable/ \;
-          ls -la ~/.local/share/godot/export_templates/4.2.2.stable/
           
-          # 2. Генерируем отладочный ключ подписи
+          # Скачиваем официальный полный архив шаблонов через внутренний API GitHub
+          gh release download 4.2.2-stable --repo godotengine/godot --pattern "Godot_v4.2.2-stable_export_templates.tpz"
+          unzip -q Godot_v4.2.2-stable_export_templates.tpz -d temp_templates
+          mv temp_templates/templates/* ~/.local/share/godot/export_templates/4.2.2.stable/
+          
+          # Проверяем, что android_debug.apk теперь точно на месте
+          ls -la ~/.local/share/godot/export_templates/4.2.2.stable/android*
+          
+          # Генерируем отладочный ключ подписи
           keytool -keyalg RSA -genkeypair -alias androiddebugkey -keypass android -keystore debug.keystore -storepass android -dname "CN=Android Debug,O=Android,C=US" -validity 10000
           
-          # 3. Записываем пути в настройки редактора Godot 4
+          # Записываем пути в настройки редактора Godot 4
           mkdir -p ~/.config/godot
           cat << EOF > ~/.config/godot/editor_settings-4.tres
           [gd_resource type="EditorSettings" format=3]
@@ -47,7 +53,7 @@ jobs:
           export/android/debug_keystore_pass = "android"
           EOF
 
-          # 4. Создаём полный пресет экспорта с явным указанием шаблонов и иконки
+          # Создаём чистый пресет экспорта
           cat << EOF > export_presets.cfg
           [preset.0]
 
@@ -86,7 +92,7 @@ jobs:
           xr_features/xr_mode=0
           EOF
 
-          # 5. Импортируем проект и запускаем экспорт в headless-режиме (без аудиодрайверов)
+          # Импортируем проект и собираем готовый APK
           godot --headless --import
           godot --headless --export-debug "Android" output_apk/app-vr-debug.apk
           test -s output_apk/app-vr-debug.apk
