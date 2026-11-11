@@ -1,30 +1,39 @@
-[gd_scene format=3 uid="uid://bq2kg8dt6o4x2"]
+[gd_scene load_steps=6 format=3]
 
-[ext_resource type="Script" uid="uid://bpjwf7c77n8tc" path="res://rigid_body_3d.gd" id="1_a202f"]
+[ext_resource type="Script" path="res://rigid_body_3d.gd" id="1_script"]
 
-[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_kqmrj"]
-albedo_color = Color(0.85619587, 0.48362273, 0, 1)
+[sub_resource type="Environment" id="Environment_space"]
+background_mode = 1
+background_color = Color(0.02, 0.02, 0.05, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.3, 0.3, 0.4, 1)
 
-[sub_resource type="BoxMesh" id="BoxMesh_2m5a4"]
+[sub_resource type="BoxMesh" id="BoxMesh_cube"]
+size = Vector3(1, 1, 1)
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_2m5a4"]
+[sub_resource type="StandardMaterial3D" id="StandardMaterial3D_orange"]
+albedo_color = Color(1, 0.45, 0.1, 1)
 
-[node name="Node3D" type="Node3D" unique_id=1481488797]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.009299874, 0.0015716553, 0)
+[sub_resource type="BoxShape3D" id="BoxShape3D_col"]
+size = Vector3(1, 1, 1)
 
-[node name="VR_Player" type="XRNode3D" parent="." unique_id=1908513943]
+[node name="Node3D" type="Node3D"]
 
-[node name="VR_Camera" type="XRNode3D" parent="VR_Player" unique_id=151035776]
+[node name="WorldEnvironment" type="WorldEnvironment" parent="."]
+environment = SubResource("Environment_space")
 
-[node name="VR_Hand" type="XRNode3D" parent="VR_Player" unique_id=1762719887]
+[node name="DirectionalLight3D" type="DirectionalLight3D" parent="."]
+transform = Transform3D(0.866025, -0.353553, 0.353553, 0, 0.707107, 0.707107, -0.5, -0.612372, 0.612372, 2, 4, 3)
 
-[node name="RigidBody3D" type="RigidBody3D" parent="." unique_id=1191304930]
-script = ExtResource("1_a202f")
+[node name="Camera3D" type="Camera3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 3.5)
 
-[node name="MeshInstance3D" type="MeshInstance3D" parent="RigidBody3D" unique_id=2101752458]
-material_override = SubResource("StandardMaterial3D_kqmrj")
-mesh = SubResource("BoxMesh_2m5a4")
+[node name="RigidBody3D" type="RigidBody3D" parent="."]
+script = ExtResource("1_script")
 
-[node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D" unique_id=1639037247]
-shape = SubResource("BoxShape3D_2m5a4")
-debug_color = Color(0.5126611, 0.5537024, 0.46285975, 0.41960785)
+[node name="MeshInstance3D" type="MeshInstance3D" parent="RigidBody3D"]
+mesh = SubResource("BoxMesh_cube")
+surface_material_override/0 = SubResource("StandardMaterial3D_orange")
+
+[node name="CollisionShape3D" type="CollisionShape3D" parent="RigidBody3D"]
+shape = SubResource("BoxShape3D_col")
