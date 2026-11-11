@@ -14,31 +14,32 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      - name: Export VR APK and Show Logs
+      - name: Download Templates and Export VR APK
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           mkdir -p output_apk
+          mkdir -p godot_templates/4.2.2.stable
+          
+          # Скачиваем официальные шаблоны через внутренний API GitHub (gh), который не блокируется
+          gh release download 4.2.2-stable --repo godotengine/godot --pattern "Godot_v4.2.2-stable_export_templates.tpz"
+          unzip -q Godot_v4.2.2-stable_export_templates.tpz -d temp_templates
+          mv temp_templates/templates/* godot_templates/4.2.2.stable/
           
           # Генерируем отладочный ключ подписи
           keytool -keyalg RSA -genkeypair -alias androiddebugkey -keypass android -keystore debug.keystore -storepass android -dname "CN=Android Debug,O=Android,C=US" -validity 10000
           
-          # Запускаем сборку в контейнере
+          # Запускаем сборку в контейнере, передав ему папку с шаблонами
           docker run \
             -v /usr/local/lib/android/sdk:/android-sdk \
             -v /usr/lib/jvm/temurin-17-jdk-amd64:/java-sdk \
+            -v $(pwd)/godot_templates:/root/.local/share/godot/export_templates \
             -v $(pwd):/project -w /project \
             barichello/godot-ci:4.2.2 bash -c '
               mkdir -p /root/.config/godot
               printf "[gd_resource type=\"EditorSettings\" format=3]\n\n[resource]\nexport/android/android_sdk_path = \"/android-sdk\"\nexport/android/java_sdk_path = \"/java-sdk\"\n" > /root/.config/godot/editor_settings-4.tres
               
-              # 1. Устанавливаем шаблон сборки Android
-              mkdir -p android/build
-              unzip -q /root/.local/share/godot/export_templates/4.2.2.stable/android_source.zip -d android/build
-              echo "4.2.2.stable" > android/.build_version
-              
-              # 2. ИСПРАВЛЕНО: Сначала прогреваем и импортируем ресурсы проекта, чтобы убрать конфликт!
               godot --headless --import
-              
-              # 3. Теперь запускаем чистую сборку APK!
               godot --headless --verbose --export-debug "Android" output_apk/app-vr-debug.apk > output_apk/build_log.txt 2>&1
             ' || true
             
