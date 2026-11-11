@@ -21,33 +21,29 @@ jobs:
           use-dotnet: false
           include-templates: true
 
-      - name: Configure SDK, Keystore and Export APK
+      - name: Install XVFB and Export APK
         run: |
           set -e
+          sudo apt-get update && sudo apt-get install -y xvfb
           mkdir -p output_apk
           
-          # 1. Находим точные пути к скачанным Android-шаблонам
-          DEBUG_TEMPLATE=$(find ~/.local/share/godot -name "android_debug.apk" | head -n 1)
-          RELEASE_TEMPLATE=$(find ~/.local/share/godot -name "android_release.apk" | head -n 1)
-          echo "Найден шаблон Debug: $DEBUG_TEMPLATE"
-          
-          # 2. Генерируем отладочный ключ подписи
+          # Генерируем отладочный ключ подписи
           keytool -keyalg RSA -genkeypair -alias androiddebugkey -keypass android -keystore debug.keystore -storepass android -dname "CN=Android Debug,O=Android,C=US" -validity 10000
           
-          # 3. Записываем пути в настройки редактора Godot 4
+          # Записываем жёсткие системные пути к SDK и Java в настройки Godot 4
           mkdir -p ~/.config/godot
           cat << EOF > ~/.config/godot/editor_settings-4.tres
           [gd_resource type="EditorSettings" format=3]
 
           [resource]
-          export/android/android_sdk_path = "$ANDROID_HOME"
-          export/android/java_sdk_path = "$JAVA_HOME"
+          export/android/android_sdk_path = "/usr/local/lib/android/sdk"
+          export/android/java_sdk_path = "/usr/lib/jvm/temurin-17-jdk-amd64"
           export/android/debug_keystore = "$PWD/debug.keystore"
           export/android/debug_keystore_user = "androiddebugkey"
           export/android/debug_keystore_pass = "android"
           EOF
 
-          # 4. Генерируем идеальный export_presets.cfg автоматически с точными системными путями
+          # Создаём чистый пресет экспорта (оставляем шаблоны пустыми, чтобы Godot взял их из системной папки)
           cat << EOF > export_presets.cfg
           [preset.0]
 
@@ -63,8 +59,8 @@ jobs:
 
           [preset.0.options]
 
-          custom_template/debug="$DEBUG_TEMPLATE"
-          custom_template/release="$RELEASE_TEMPLATE"
+          custom_template/debug=""
+          custom_template/release=""
           gradle_build/use_gradle_build=false
           gradle_build/export_format=0
           architectures/armeabi-v7a=false
@@ -85,9 +81,9 @@ jobs:
           xr_features/xr_mode=0
           EOF
 
-          # 5. Импортируем проект и запускаем экспорт
-          godot --headless --import
-          godot --headless --verbose --export-debug "Android" output_apk/app-vr-debug.apk
+          # Запускаем импорт и сборку через виртуальный монитор xvfb-run без --headless
+          xvfb-run -a godot --import --quit
+          xvfb-run -a godot --verbose --export-debug "Android" output_apk/app-vr-debug.apk
           test -s output_apk/app-vr-debug.apk
 
       - name: Upload VR APK to GitHub Artifacts
