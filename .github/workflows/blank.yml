@@ -18,10 +18,11 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
+          set -e
           mkdir -p output_apk
           mkdir -p godot_templates/4.2.2.stable
           
-          # Скачиваем официальные шаблоны через внутренний API GitHub (gh), который не блокируется
+          # Скачиваем официальные шаблоны через внутренний API GitHub
           gh release download 4.2.2-stable --repo godotengine/godot --pattern "Godot_v4.2.2-stable_export_templates.tpz"
           unzip -q Godot_v4.2.2-stable_export_templates.tpz -d temp_templates
           mv temp_templates/templates/* godot_templates/4.2.2.stable/
@@ -29,26 +30,26 @@ jobs:
           # Генерируем отладочный ключ подписи
           keytool -keyalg RSA -genkeypair -alias androiddebugkey -keypass android -keystore debug.keystore -storepass android -dname "CN=Android Debug,O=Android,C=US" -validity 10000
           
-          # Запускаем сборку в контейнере, передав ему папку с шаблонами
+          # Запускаем сборку в контейнере (без маскировки ошибок — всё выводится прямо на экран)
           docker run \
             -v /usr/local/lib/android/sdk:/android-sdk \
             -v /usr/lib/jvm/temurin-17-jdk-amd64:/java-sdk \
             -v $(pwd)/godot_templates:/root/.local/share/godot/export_templates \
             -v $(pwd):/project -w /project \
             barichello/godot-ci:4.2.2 bash -c '
+              set -e
               mkdir -p /root/.config/godot
               printf "[gd_resource type=\"EditorSettings\" format=3]\n\n[resource]\nexport/android/android_sdk_path = \"/android-sdk\"\nexport/android/java_sdk_path = \"/java-sdk\"\n" > /root/.config/godot/editor_settings-4.tres
               
               godot --headless --import
-              godot --headless --verbose --export-debug "Android" output_apk/app-vr-debug.apk > output_apk/build_log.txt 2>&1
-            ' || true
-            
-          echo "================ ОТЧЕТ О СБОРКЕ GODOT ================"
-          tail -n 40 output_apk/build_log.txt || true
-          echo "======================================================"
+              godot --headless --verbose --export-debug "Android" output_apk/app-vr-debug.apk
+            '
+          
+          # Проверяем, что готовый APK действительно создался и весит больше 1 МБ
+          test -s output_apk/app-vr-debug.apk
 
-      - name: Upload VR APK and Log to GitHub Artifacts
+      - name: Upload VR APK to GitHub Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: godot-space-vr-apk
-          path: output_apk/
+          path: output_apk/app-vr-debug.apk
