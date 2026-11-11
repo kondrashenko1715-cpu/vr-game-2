@@ -21,7 +21,7 @@ jobs:
           # Генерируем отладочный ключ подписи
           keytool -keyalg RSA -genkeypair -alias androiddebugkey -keypass android -keystore debug.keystore -storepass android -dname "CN=Android Debug,O=Android,C=US" -validity 10000
           
-          # Запускаем сборку в контейнере: распаковываем android_source.zip в android/build и запускаем Gradle!
+          # Запускаем сборку в контейнере
           docker run \
             -v /usr/local/lib/android/sdk:/android-sdk \
             -v /usr/lib/jvm/temurin-17-jdk-amd64:/java-sdk \
@@ -30,12 +30,15 @@ jobs:
               mkdir -p /root/.config/godot
               printf "[gd_resource type=\"EditorSettings\" format=3]\n\n[resource]\nexport/android/android_sdk_path = \"/android-sdk\"\nexport/android/java_sdk_path = \"/java-sdk\"\n" > /root/.config/godot/editor_settings-4.tres
               
-              # УСТАНАВЛИВАЕМ ШАБЛОН СБОРКИ ANDROID В ПРОЕКТ
+              # 1. Устанавливаем шаблон сборки Android
               mkdir -p android/build
               unzip -q /root/.local/share/godot/export_templates/4.2.2.stable/android_source.zip -d android/build
               echo "4.2.2.stable" > android/.build_version
               
-              # ЗАПУСКАЕМ ПОЛНОЦЕННУЮ СБОРКУ APK
+              # 2. ИСПРАВЛЕНО: Сначала прогреваем и импортируем ресурсы проекта, чтобы убрать конфликт!
+              godot --headless --import
+              
+              # 3. Теперь запускаем чистую сборку APK!
               godot --headless --verbose --export-debug "Android" output_apk/app-vr-debug.apk > output_apk/build_log.txt 2>&1
             ' || true
             
