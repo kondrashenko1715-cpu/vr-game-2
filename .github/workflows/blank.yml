@@ -25,16 +25,7 @@ jobs:
         run: |
           keytool -keyalg RSA -genkeypair -alias androiddebugkey -keypass android -keystore debug.keystore -storepass android -dname "CN=Android Debug,O=Android,C=US" -validity 10000
           mkdir -p ~/.config/godot
-          cat << 'EOF' > ~/.config/godot/editor_settings-4.tres
-          [gd_resource type="EditorSettings" format=3]
-
-          [resource]
-          export/android/android_sdk_path = "/usr/local/lib/android/sdk"
-          export/android/java_sdk_path = "/usr/lib/jvm/temurin-17-jdk-amd64"
-          export/android/debug_keystore = "${{ github.workspace }}/debug.keystore"
-          export/android/debug_keystore_user = "androiddebugkey"
-          export/android/debug_keystore_pass = "android"
-          EOF
+          printf '[gd_resource type="EditorSettings" format=3]\n\n[resource]\nexport/android/android_sdk_path = "/usr/local/lib/android/sdk"\nexport/android/java_sdk_path = "/usr/lib/jvm/temurin-17-jdk-amd64"\n' > ~/.config/godot/editor_settings-4.tres
 
       - name: Import & Export Android APK
         run: |
