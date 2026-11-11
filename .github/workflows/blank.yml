@@ -14,28 +14,31 @@ jobs:
           distribution: 'temurin'
           java-version: '17'
 
-      # ИСПРАВЛЕНО: Убрали хрупкое монтирование файлов конфигурации и передаем все параметры напрямую через системные переменные!
-      - name: Export VR APK via Connected Container
+      - name: Export VR APK and Show Logs
         run: |
           mkdir -p output_apk
           
-          # 1. Генерируем официальный отладочный цифровой ключ Android
+          # Генерируем отладочный ключ подписи
           keytool -keyalg RSA -genkeypair -alias androiddebugkey -keypass android -keystore debug.keystore -storepass android -dname "CN=Android Debug,O=Android,C=US" -validity 10000
           
-          # 2. ЗАПУСКАЕМ DOCKER: Передаем переменные для сборщика Android Gradle напрямую через флаги -e
+          # Запускаем сборку в контейнере, создаем настройки и записываем весь процесс в build_log.txt
           docker run \
-            -e ANDROID_HOME=/android-sdk \
-            -e JAVA_HOME=/usr/lib/jvm/temurin-17-jdk-amd64 \
-            -e GODOT_ANDROID_SDK_PATH=/android-sdk \
-            -e GODOT_ANDROID_JAVA_SDK_PATH=/usr/lib/jvm/temurin-17-jdk-amd64 \
             -v /usr/local/lib/android/sdk:/android-sdk \
-            -v /usr/lib/jvm/temurin-17-jdk-amd64:/usr/lib/jvm/temurin-17-jdk-amd64 \
+            -v /usr/lib/jvm/temurin-17-jdk-amd64:/java-sdk \
             -v $(pwd):/project -w /project \
-            barichello/godot-ci:4.2.2 godot --headless --android-sdk /android-sdk --export-debug "Android" output_apk/app-vr-debug.apk
+            barichello/godot-ci:4.2.2 bash -c '
+              mkdir -p /root/.config/godot
+              printf "[gd_resource type=\"EditorSettings\" format=3]\n\n[resource]\nexport/android/android_sdk_path = \"/android-sdk\"\nexport/android/java_sdk_path = \"/java-sdk\"\n" > /root/.config/godot/editor_settings-4.tres
+              godot --headless --verbose --export-debug "Android" output_apk/app-vr-debug.apk > output_apk/build_log.txt 2>&1
+            ' || true
+            
+          # Выводим самые важные последние 40 строчек отчёта прямо на экран!
+          echo "================ ОТЧЕТ ОБ ОШИБКАХ GODOT ================"
+          tail -n 40 output_apk/build_log.txt || true
+          echo "========================================================"
 
-      # Отдаем скомпилированный APK-файл игры с реальным весом в мегабайтах!
-      - name: Upload VR APK to GitHub Artifacts
+      - name: Upload VR APK and Log to GitHub Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: godot-space-vr-apk
-          path: output_apk/*.apk
+          path: output_apk/
