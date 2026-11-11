@@ -21,21 +21,37 @@ jobs:
           use-dotnet: false
           include-templates: true
 
-      - name: Generate Debug Keystore
+      - name: Configure SDK, Keystore and Export APK
         run: |
+          set -e
+          mkdir -p output_apk
+          
+          # Генерируем отладочный ключ подписи
           keytool -keyalg RSA -genkeypair -alias androiddebugkey -keypass android -keystore debug.keystore -storepass android -dname "CN=Android Debug,O=Android,C=US" -validity 10000
+          
+          # Записываем пути к SDK, Java и ключу в настройки Godot 4
+          mkdir -p ~/.config/godot
+          cat << EOF > ~/.config/godot/editor_settings-4.tres
+          [gd_resource type="EditorSettings" format=3]
 
-      - name: Export Godot Project
-        uses: firebelley/godot-export@v5.2.0
-        with:
-          godot_executable_path: godot
-          godot_export_templates_path: ~/.local/share/godot/export_templates
-          relative_project_path: .
-          archive_output: false
-          use_preset_export_path: true
+          [resource]
+          export/android/android_sdk_path = "$ANDROID_HOME"
+          export/android/java_sdk_path = "$JAVA_HOME"
+          export/android/debug_keystore = "$PWD/debug.keystore"
+          export/android/debug_keystore_user = "androiddebugkey"
+          export/android/debug_keystore_pass = "android"
+          EOF
+
+          # Импортируем ресурсы и собираем APK напрямую в корень проекта
+          godot --headless --import
+          godot --headless --verbose --export-debug "Android" app-vr-debug.apk
+          
+          # Перемещаем готовый файл в папку для выгрузки и проверяем его размер
+          mv app-vr-debug.apk output_apk/app-vr-debug.apk
+          test -s output_apk/app-vr-debug.apk
 
       - name: Upload VR APK to GitHub Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: godot-space-vr-apk
-          path: output_apk/*.apk
+          path: output_apk/app-vr-debug.apk
