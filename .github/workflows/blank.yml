@@ -21,16 +21,20 @@ jobs:
           use-dotnet: false
           include-templates: true
 
-      - name: Install XVFB and Export APK
+      - name: Configure and Export Android APK
         run: |
           set -e
-          sudo apt-get update && sudo apt-get install -y xvfb
           mkdir -p output_apk
           
-          # Генерируем отладочный ключ подписи
+          # 1. Находим реальные шаблоны и гарантированно копируем их в папку с точным именем 4.2.2.stable
+          mkdir -p ~/.local/share/godot/export_templates/4.2.2.stable
+          find ~/.local/share/godot/export_templates -type f -exec cp -n {} ~/.local/share/godot/export_templates/4.2.2.stable/ \;
+          ls -la ~/.local/share/godot/export_templates/4.2.2.stable/
+          
+          # 2. Генерируем отладочный ключ подписи
           keytool -keyalg RSA -genkeypair -alias androiddebugkey -keypass android -keystore debug.keystore -storepass android -dname "CN=Android Debug,O=Android,C=US" -validity 10000
           
-          # Записываем жёсткие системные пути к SDK и Java в настройки Godot 4
+          # 3. Записываем пути в настройки редактора Godot 4
           mkdir -p ~/.config/godot
           cat << EOF > ~/.config/godot/editor_settings-4.tres
           [gd_resource type="EditorSettings" format=3]
@@ -43,7 +47,7 @@ jobs:
           export/android/debug_keystore_pass = "android"
           EOF
 
-          # Создаём чистый пресет экспорта (оставляем шаблоны пустыми, чтобы Godot взял их из системной папки)
+          # 4. Создаём полный пресет экспорта с явным указанием шаблонов и иконки
           cat << EOF > export_presets.cfg
           [preset.0]
 
@@ -59,8 +63,8 @@ jobs:
 
           [preset.0.options]
 
-          custom_template/debug=""
-          custom_template/release=""
+          custom_template/debug="$HOME/.local/share/godot/export_templates/4.2.2.stable/android_debug.apk"
+          custom_template/release="$HOME/.local/share/godot/export_templates/4.2.2.stable/android_release.apk"
           gradle_build/use_gradle_build=false
           gradle_build/export_format=0
           architectures/armeabi-v7a=false
@@ -78,12 +82,13 @@ jobs:
           package/unique_name="com.kondrashenko.picovrspace"
           package/name="PicoVR Space"
           package/signed=true
+          launcher_icons/main_192x192="res://icon.svg"
           xr_features/xr_mode=0
           EOF
 
-          # Запускаем импорт и сборку через виртуальный монитор xvfb-run без --headless
-          xvfb-run -a godot --import --quit
-          xvfb-run -a godot --verbose --export-debug "Android" output_apk/app-vr-debug.apk
+          # 5. Импортируем проект и запускаем экспорт в headless-режиме (без аудиодрайверов)
+          godot --headless --import
+          godot --headless --export-debug "Android" output_apk/app-vr-debug.apk
           test -s output_apk/app-vr-debug.apk
 
       - name: Upload VR APK to GitHub Artifacts
